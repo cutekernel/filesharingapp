@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tag Management</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Tag Management</h1>
+    <form>
+      <div class="form-group">
+        <label for="tag-name">Tag Name:</label>
+        <input type="text" class="form-control" id="tag-name" placeholder="Enter tag name">
+      </div>
+      <div class="form-group">
+        <label for="tag-description">Tag Description:</label>
+        <textarea class="form-control" id="tag-description" rows="3" placeholder="Enter tag description"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Tag</button>
+    </form>
+    <hr>
+    <h2>Current Tags</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Tag Name</th>
+          <th>Description</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Tag 1</td>
+          <td>Tag 1 Description</td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm">Remove</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Tag 2</td>
+          <td>Tag 2 Description</td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm">Remove</button>
+          </td>
+        </tr>
+        <!-- add more rows as needed -->
+      </tbody>
+    </table>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

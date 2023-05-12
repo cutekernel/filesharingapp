@@ -1,0 +1,441 @@
+-- MariaDB dump 10.19  Distrib 10.11.2-MariaDB, for debian-linux-gnu (x86_64)
+--
+-- Host: localhost    Database: filesharingdb
+-- ------------------------------------------------------
+-- Server version	10.11.2-MariaDB-1:10.11.2+maria~ubu2204
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `AccessControlRule`
+--
+
+DROP TABLE IF EXISTS `AccessControlRule`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `AccessControlRule` (
+  `RuleID` int(11) NOT NULL AUTO_INCREMENT,
+  `RuleName` varchar(50) NOT NULL,
+  `RuleDescription` text DEFAULT NULL,
+  `AccessLevel` varchar(20) NOT NULL,
+  `UserID` int(11) NOT NULL,
+  PRIMARY KEY (`RuleID`),
+  UNIQUE KEY `RuleName` (`RuleName`),
+  KEY `UserID` (`UserID`),
+  CONSTRAINT `AccessControlRule_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `User` (`UserID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `AccessControlRule`
+--
+
+LOCK TABLES `AccessControlRule` WRITE;
+/*!40000 ALTER TABLE `AccessControlRule` DISABLE KEYS */;
+/*!40000 ALTER TABLE `AccessControlRule` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `File`
+--
+
+DROP TABLE IF EXISTS `File`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `File` (
+  `FileID` int(11) NOT NULL AUTO_INCREMENT,
+  `FileName` varchar(255) NOT NULL,
+  `FileSize` int(11) NOT NULL,
+  `UploadDate` datetime NOT NULL DEFAULT current_timestamp(),
+  `LatestVersionID` int(11) DEFAULT NULL,
+  `OwnerID` int(11) DEFAULT NULL,
+  `UserID` int(11) NOT NULL,
+  `FormatID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`FileID`),
+  KEY `FormatID` (`FormatID`),
+  KEY `UserID` (`UserID`),
+  KEY `LatestVersionID` (`LatestVersionID`),
+  CONSTRAINT `File_ibfk_1` FOREIGN KEY (`FormatID`) REFERENCES `FileFormat` (`FormatID`) ON DELETE CASCADE,
+  CONSTRAINT `File_ibfk_2` FOREIGN KEY (`UserID`) REFERENCES `User` (`UserID`) ON DELETE CASCADE,
+  CONSTRAINT `File_ibfk_3` FOREIGN KEY (`LatestVersionID`) REFERENCES `FileVersion` (`VersionID`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `File`
+--
+
+LOCK TABLES `File` WRITE;
+/*!40000 ALTER TABLE `File` DISABLE KEYS */;
+/*!40000 ALTER TABLE `File` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `FileCategory`
+--
+
+DROP TABLE IF EXISTS `FileCategory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `FileCategory` (
+  `CategoryID` int(11) NOT NULL AUTO_INCREMENT,
+  `CategoryName` varchar(50) NOT NULL,
+  `CategoryDescription` text DEFAULT NULL,
+  PRIMARY KEY (`CategoryID`),
+  UNIQUE KEY `CategoryName` (`CategoryName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `FileCategory`
+--
+
+LOCK TABLES `FileCategory` WRITE;
+/*!40000 ALTER TABLE `FileCategory` DISABLE KEYS */;
+/*!40000 ALTER TABLE `FileCategory` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `FileFormat`
+--
+
+DROP TABLE IF EXISTS `FileFormat`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `FileFormat` (
+  `FormatID` int(11) NOT NULL AUTO_INCREMENT,
+  `FormatName` varchar(50) NOT NULL,
+  `FormatDescription` text DEFAULT NULL,
+  PRIMARY KEY (`FormatID`),
+  UNIQUE KEY `FormatName` (`FormatName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `FileFormat`
+--
+
+LOCK TABLES `FileFormat` WRITE;
+/*!40000 ALTER TABLE `FileFormat` DISABLE KEYS */;
+/*!40000 ALTER TABLE `FileFormat` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `FileVersion`
+--
+
+DROP TABLE IF EXISTS `FileVersion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `FileVersion` (
+  `VersionID` int(11) NOT NULL AUTO_INCREMENT,
+  `VersionNumber` int(11) NOT NULL,
+  `VersionDescription` text DEFAULT NULL,
+  `VersionSize` int(11) NOT NULL,
+  `VersionUploadDate` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`VersionID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `FileVersion`
+--
+
+LOCK TABLES `FileVersion` WRITE;
+/*!40000 ALTER TABLE `FileVersion` DISABLE KEYS */;
+/*!40000 ALTER TABLE `FileVersion` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `Notification`
+--
+
+DROP TABLE IF EXISTS `Notification`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `Notification` (
+  `NotificationID` int(11) NOT NULL AUTO_INCREMENT,
+  `NotificationType` varchar(50) NOT NULL,
+  `NotificationMessage` text NOT NULL,
+  `NotificationDate` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`NotificationID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Notification`
+--
+
+LOCK TABLES `Notification` WRITE;
+/*!40000 ALTER TABLE `Notification` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Notification` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `Tag`
+--
+
+DROP TABLE IF EXISTS `Tag`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `Tag` (
+  `TagID` int(11) NOT NULL AUTO_INCREMENT,
+  `TagName` varchar(50) NOT NULL,
+  `TagDescription` text DEFAULT NULL,
+  PRIMARY KEY (`TagID`),
+  UNIQUE KEY `TagName` (`TagName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Tag`
+--
+
+LOCK TABLES `Tag` WRITE;
+/*!40000 ALTER TABLE `Tag` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Tag` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `User`
+--
+
+DROP TABLE IF EXISTS `User`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `User` (
+  `UserID` int(11) NOT NULL AUTO_INCREMENT,
+  `Username` varchar(50) NOT NULL,
+  `Email` varchar(255) NOT NULL,
+  `Password` varchar(255) NOT NULL,
+  `RegistrationDate` datetime NOT NULL DEFAULT current_timestamp(),
+  `LastLoginDate` datetime DEFAULT NULL,
+  `UserProfile` text DEFAULT NULL,
+  PRIMARY KEY (`UserID`),
+  UNIQUE KEY `Username` (`Username`),
+  UNIQUE KEY `Email` (`Email`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `User`
+--
+
+LOCK TABLES `User` WRITE;
+/*!40000 ALTER TABLE `User` DISABLE KEYS */;
+INSERT INTO `User` VALUES
+(1,'johndoe','johndoe@example.com','P@ssw0rd1','2023-05-09 23:19:34','2023-05-09 23:19:34','John Doe is a software engineer who enjoys hiking and playing guitar in his free time.'),
+(2,'janedoe','janedoe@example.com','P@ssw0rd2','2023-05-09 23:19:34','2023-05-09 23:19:34','Jane Doe is a graphic designer who loves to travel and try new foods.'),
+(3,'bobsmith','bobsmith@example.com','P@ssw0rd3','2023-05-09 23:19:34','2023-05-09 23:19:34','Bob Smith is a marketing specialist who enjoys playing basketball and watching movies.'),
+(4,'sarajohnson','sarajohnson@example.com','P@ssw0rd4','2023-05-09 23:19:34','2023-05-09 23:19:34','Sara Johnson is a teacher who enjoys reading and practicing yoga.'),
+(5,'mikejones','mikejones@example.com','P@ssw0rd5','2023-05-09 23:19:34','2023-05-09 23:19:34','Mike Jones is a software developer who loves to play video games and go hiking.'),
+(6,'jennylee','jennylee@example.com','P@ssw0rd6','2023-05-09 23:19:34','2023-05-09 23:19:34','Jenny Lee is a musician who enjoys playing the guitar and singing in her free time.'),
+(7,'tomhanks','tomhanks@example.com','P@ssw0rd7','2023-05-09 23:19:34','2023-05-09 23:19:34','Tom Hanks is an actor who loves to play golf and travel around the world.'),
+(8,'jenniferlopez','jenniferlopez@example.com','P@ssw0rd8','2023-05-09 23:19:34','2023-05-09 23:19:34','Jennifer Lopez is a singer who enjoys dancing and spending time with her family.'),
+(9,'willsmith','willsmith@example.com','P@ssw0rd9','2023-05-09 23:19:34','2023-05-09 23:19:34','Will Smith is an actor who loves to play basketball and read motivational books.'),
+(10,'angelinajolie','angelinajolie@example.com','P@ssw0rd10','2023-05-09 23:19:34','2023-05-09 23:19:34','Angelina Jolie is an actress who enjoys humanitarian work and spending time with her children.');
+/*!40000 ALTER TABLE `User` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `UserActivity`
+--
+
+DROP TABLE IF EXISTS `UserActivity`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `UserActivity` (
+  `ActivityID` int(11) NOT NULL AUTO_INCREMENT,
+  `FileID` int(11) NOT NULL,
+  `ActivityType` varchar(50) NOT NULL,
+  `ActivityDate` datetime NOT NULL DEFAULT current_timestamp(),
+  `UserID` int(11) NOT NULL,
+  PRIMARY KEY (`ActivityID`),
+  KEY `UserID` (`UserID`),
+  CONSTRAINT `UserActivity_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `User` (`UserID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `UserActivity`
+--
+
+LOCK TABLES `UserActivity` WRITE;
+/*!40000 ALTER TABLE `UserActivity` DISABLE KEYS */;
+/*!40000 ALTER TABLE `UserActivity` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `UserGroup`
+--
+
+DROP TABLE IF EXISTS `UserGroup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `UserGroup` (
+  `GroupID` int(11) NOT NULL AUTO_INCREMENT,
+  `GroupName` varchar(50) NOT NULL,
+  `GroupDescription` text DEFAULT NULL,
+  PRIMARY KEY (`GroupID`),
+  UNIQUE KEY `GroupName` (`GroupName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `UserGroup`
+--
+
+LOCK TABLES `UserGroup` WRITE;
+/*!40000 ALTER TABLE `UserGroup` DISABLE KEYS */;
+/*!40000 ALTER TABLE `UserGroup` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `file_has_ac_rule`
+--
+
+DROP TABLE IF EXISTS `file_has_ac_rule`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `file_has_ac_rule` (
+  `fileID` int(11) NOT NULL,
+  `ruleID` int(11) NOT NULL,
+  PRIMARY KEY (`fileID`,`ruleID`),
+  KEY `ruleID` (`ruleID`),
+  CONSTRAINT `file_has_ac_rule_ibfk_1` FOREIGN KEY (`fileID`) REFERENCES `File` (`FileID`) ON DELETE CASCADE,
+  CONSTRAINT `file_has_ac_rule_ibfk_2` FOREIGN KEY (`ruleID`) REFERENCES `AccessControlRule` (`RuleID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `file_has_ac_rule`
+--
+
+LOCK TABLES `file_has_ac_rule` WRITE;
+/*!40000 ALTER TABLE `file_has_ac_rule` DISABLE KEYS */;
+/*!40000 ALTER TABLE `file_has_ac_rule` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `file_has_filecategory`
+--
+
+DROP TABLE IF EXISTS `file_has_filecategory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `file_has_filecategory` (
+  `fileID` int(11) NOT NULL,
+  `categoryID` int(11) NOT NULL,
+  PRIMARY KEY (`fileID`,`categoryID`),
+  KEY `categoryID` (`categoryID`),
+  CONSTRAINT `file_has_filecategory_ibfk_1` FOREIGN KEY (`fileID`) REFERENCES `File` (`FileID`) ON DELETE CASCADE,
+  CONSTRAINT `file_has_filecategory_ibfk_2` FOREIGN KEY (`categoryID`) REFERENCES `FileCategory` (`CategoryID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `file_has_filecategory`
+--
+
+LOCK TABLES `file_has_filecategory` WRITE;
+/*!40000 ALTER TABLE `file_has_filecategory` DISABLE KEYS */;
+/*!40000 ALTER TABLE `file_has_filecategory` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `file_has_tag`
+--
+
+DROP TABLE IF EXISTS `file_has_tag`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `file_has_tag` (
+  `fileID` int(11) NOT NULL,
+  `tagID` int(11) NOT NULL,
+  PRIMARY KEY (`fileID`,`tagID`),
+  KEY `tagID` (`tagID`),
+  CONSTRAINT `file_has_tag_ibfk_1` FOREIGN KEY (`fileID`) REFERENCES `File` (`FileID`) ON DELETE CASCADE,
+  CONSTRAINT `file_has_tag_ibfk_2` FOREIGN KEY (`tagID`) REFERENCES `Tag` (`TagID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `file_has_tag`
+--
+
+LOCK TABLES `file_has_tag` WRITE;
+/*!40000 ALTER TABLE `file_has_tag` DISABLE KEYS */;
+/*!40000 ALTER TABLE `file_has_tag` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user_belongs_userGroup`
+--
+
+DROP TABLE IF EXISTS `user_belongs_userGroup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_belongs_userGroup` (
+  `UserID` int(11) NOT NULL,
+  `groupID` int(11) NOT NULL,
+  PRIMARY KEY (`UserID`,`groupID`),
+  KEY `groupID` (`groupID`),
+  CONSTRAINT `user_belongs_userGroup_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `User` (`UserID`) ON DELETE CASCADE,
+  CONSTRAINT `user_belongs_userGroup_ibfk_2` FOREIGN KEY (`groupID`) REFERENCES `UserGroup` (`GroupID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_belongs_userGroup`
+--
+
+LOCK TABLES `user_belongs_userGroup` WRITE;
+/*!40000 ALTER TABLE `user_belongs_userGroup` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_belongs_userGroup` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user_receives_notification`
+--
+
+DROP TABLE IF EXISTS `user_receives_notification`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_receives_notification` (
+  `UserID` int(11) NOT NULL,
+  `notificationID` int(11) NOT NULL,
+  PRIMARY KEY (`UserID`,`notificationID`),
+  KEY `notificationID` (`notificationID`),
+  CONSTRAINT `user_receives_notification_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `User` (`UserID`) ON DELETE CASCADE,
+  CONSTRAINT `user_receives_notification_ibfk_2` FOREIGN KEY (`notificationID`) REFERENCES `Notification` (`NotificationID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_receives_notification`
+--
+
+LOCK TABLES `user_receives_notification` WRITE;
+/*!40000 ALTER TABLE `user_receives_notification` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_receives_notification` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2023-05-09 23:24:57

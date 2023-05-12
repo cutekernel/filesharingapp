@@ -1,0 +1,258 @@
+create database filesharingdb;
+use filesharingdb;
+
+-- Drop tables if they exist
+DROP TABLE IF EXISTS AccessControlRule;
+DROP TABLE IF EXISTS FileFormat;
+DROP TABLE IF EXISTS FileVersion;
+DROP TABLE IF EXISTS File;
+DROP TABLE IF EXISTS FileCategory;
+DROP TABLE IF EXISTS Notification;
+DROP TABLE IF EXISTS Tag;
+DROP TABLE IF EXISTS UserGroup;
+DROP TABLE IF EXISTS UserActivity;
+DROP TABLE IF EXISTS User;
+
+-- Create User table
+CREATE TABLE User (
+UserID INT NOT NULL AUTO_INCREMENT, -- unique identifier for each user
+Username VARCHAR(50) UNIQUE NOT NULL, -- username should be unique and not null
+Email VARCHAR(255) UNIQUE NOT NULL, -- email should be unique and not null
+Password VARCHAR(255) NOT NULL, -- password should not be null
+RegistrationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- registration date is set to current timestamp by default
+LastLoginDate DATETIME, -- last login date may be null if user has not logged in yet
+UserProfile TEXT, -- user profile is a text field that may contain large amounts of data
+PRIMARY KEY (UserID) -- set UserID as primary key
+);
+
+
+-- Create File table
+CREATE TABLE File (
+FileID INT NOT NULL AUTO_INCREMENT,
+FileName VARCHAR(255) NOT NULL,
+FileSize INT NOT NULL,
+UploadDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+LatestVersionID INT,
+OwnerID INT NOT NULL,
+PRIMARY KEY (FileID),
+FOREIGN KEY (LatestVersionID) REFERENCES FileVersion (VersionID) ON DELETE NO ACTION,
+-- The LatestVersionID attribute references the VersionID primary key of the FileVersion table
+-- The ON DELETE NO ACTION specifies that if a FileVersion record is deleted, the File record is not affected
+FOREIGN KEY (OwnerID) REFERENCES User (UserID) ON DELETE CASCADE
+-- The OwnerID attribute references the UserID primary key of the User table
+-- The ON DELETE CASCADE specifies that if a User record is deleted, all associated File records are also deleted
+);
+
+-- Create FileCategory table
+CREATE TABLE FileCategory (
+CategoryID INT NOT NULL AUTO_INCREMENT,
+CategoryName VARCHAR(50) UNIQUE NOT NULL,
+CategoryDescription TEXT,
+PRIMARY KEY (CategoryID)
+-- The CategoryID attribute is the primary key of the table
+-- The CategoryName attribute is unique to ensure there are no duplicate categories
+);
+
+-- Create AccessControlRule table with RuleID as the primary key, which is an auto-incrementing integer to ensure uniqueness
+CREATE TABLE AccessControlRule (
+RuleID INT NOT NULL AUTO_INCREMENT,
+RuleName VARCHAR(50) UNIQUE NOT NULL, -- RuleName should be unique to ensure each rule has a distinct name
+RuleDescription TEXT,
+AccessLevel VARCHAR(20) NOT NULL,
+PRIMARY KEY (RuleID)
+);
+
+-- Create UserActivity table with ActivityID as the primary key, which is an auto-incrementing integer to ensure uniqueness
+CREATE TABLE UserActivity (
+ActivityID INT NOT NULL AUTO_INCREMENT,
+FileID INT NOT NULL, -- FileID is a foreign key referencing the File table to ensure data consistency
+ActivityType VARCHAR(50) NOT NULL,
+ActivityDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- ActivityDate defaults to the current timestamp to ensure accurate recording of activity
+PRIMARY KEY (ActivityID),
+FOREIGN KEY (FileID) REFERENCES File (FileID) ON DELETE CASCADE -- FileID references the File table and cascade deletion is used to maintain referential integrity
+);
+
+-- Create FileVersion table with columns for tracking file versions and related file ID.
+CREATE TABLE FileVersion (
+VersionID INT NOT NULL AUTO_INCREMENT, -- Unique version ID
+VersionNumber INT NOT NULL, -- Version number for tracking purposes
+VersionDescription TEXT, -- Description of changes made in the version
+VersionSize INT NOT NULL, -- Size of the version in bytes
+VersionUploadDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Timestamp for when the version was uploaded
+FileID INT NOT NULL, -- Foreign key referencing the File table
+PRIMARY KEY (VersionID),
+FOREIGN KEY (FileID) REFERENCES File (FileID) ON DELETE CASCADE -- Ensure that a file cannot exist without at least one version
+);
+
+-- Create FileFormat table to store the available formats for files.
+CREATE TABLE FileFormat (
+FormatID INT NOT NULL AUTO_INCREMENT, -- Unique format ID
+FormatName VARCHAR(50) UNIQUE NOT NULL, -- Name of the file format
+FormatDescription TEXT, -- Description of the file format
+PRIMARY KEY (FormatID)
+);
+
+-- Create Notification table
+-- Notification table: NotificationID is the primary key to uniquely identify each notification. NotificationType and NotificationMessage are required columns to describe the type and message of the notification. NotificationDate is the timestamp for when the notification was created.
+CREATE TABLE Notification (
+  NotificationID INT NOT NULL AUTO_INCREMENT,
+  NotificationType VARCHAR(50) NOT NULL,
+  NotificationMessage TEXT NOT NULL,
+  NotificationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (NotificationID)
+);
+
+-- Create UserGroup table
+-- UserGroup table: GroupID is the primary key to uniquely identify each user group. GroupName is a required column to give a name to the group that is unique. GroupDescription is an optional field to provide a description of the user group.
+CREATE TABLE UserGroup (
+  GroupID INT NOT NULL AUTO_INCREMENT,
+  GroupName VARCHAR(50) UNIQUE NOT NULL,
+  GroupDescription TEXT,
+  PRIMARY KEY (GroupID)
+);
+
+-- Create Tag table
+-- Tag table: TagID is the primary key to uniquely identify each tag. TagName is a required column to give a name to the tag that is unique. TagDescription is an optional field to provide a description of the tag.
+CREATE TABLE Tag (
+  TagID INT NOT NULL AUTO_INCREMENT,
+  TagName VARCHAR(50) UNIQUE NOT NULL,
+  TagDescription TEXT,
+  PRIMARY KEY (TagID)
+);
+
+
+
+
+INSERT INTO User (Username, Email, Password) VALUES ('johndoe', 'johndoe@example.com', 'password123');
+INSERT INTO User (Username, Email, Password) VALUES ('janedoe', 'janedoe@example.com', 'abc123');
+INSERT INTO User (Username, Email, Password) VALUES ('bobsmith', 'bobsmith@gmail.com', 'password');
+INSERT INTO User (Username, Email, Password) VALUES ('sarawilliams', 'sarawilliams@yahoo.com', 'securepassword');
+INSERT INTO User (Username, Email, Password) VALUES ('michaeljones', 'mjones@hotmail.com', 'password456');
+INSERT INTO User (Username, Email, Password) VALUES ('laurasmith', 'laurasmith@outlook.com', 'password1234');
+INSERT INTO User (Username, Email, Password) VALUES ('davidsmith', 'davidsmith@gmail.com', 'password');
+INSERT INTO User (Username, Email, Password) VALUES ('emilyjohnson', 'emilyjohnson@gmail.com', 'password123');
+INSERT INTO User (Username, Email, Password) VALUES ('alexwilson', 'awilson@example.com', 'abc123');
+INSERT INTO User (Username, Email, Password) VALUES ('chrisgreen', 'cgreen@hotmail.com', 'password1234');
+
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('document1.pdf', 1024, 5);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('presentation.pptx', 2048, 3);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('image.jpg', 512, 7);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('spreadsheet.xlsx', 4096, 2);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('code.c', 8192, 4);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('notes.txt', 128, 1);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('video.mp4', 16384, 6);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('database.sql', 32768, 2);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('presentation2.pptx', 4096, 3);
+INSERT INTO File (FileName, FileSize, OwnerID) VALUES ('picture.png', 1024, 7);
+
+
+INSERT INTO FileCategory (CategoryName, CategoryDescription)
+VALUES ('Documents', 'Files related to official documents'),
+       ('Images', 'Files related to images or graphics'),
+       ('Audio', 'Files related to audio recordings or music'),
+       ('Video', 'Files related to videos or movies'),
+       ('Archives', 'Files compressed into an archive format'),
+       ('Code', 'Files related to code or programming'),
+       ('Data', 'Files related to data or databases'),
+       ('Backups', 'Files used for backup purposes'),
+       ('Templates', 'Files used as templates or sample files'),
+       ('Miscellaneous', 'Files that do not fit into any other category');
+
+
+
+INSERT INTO AccessControlRule (RuleName, RuleDescription, AccessLevel)
+VALUES ('Admin Access', 'Grants full access to all files', 'Admin'),
+       ('Read-Only Access', 'Grants read-only access to files', 'Read-Only'),
+       ('Read-Write Access', 'Grants read and write access to files', 'Read-Write'),
+       ('Executive Access', 'Grants access to executive files', 'Executive'),
+       ('Manager Access', 'Grants access to manager files', 'Manager'),
+       ('Developer Access', 'Grants access to developer files', 'Developer'),
+       ('Team Lead Access', 'Grants access to team lead files', 'Team Lead'),
+       ('Public Access', 'Grants public access to files', 'Public'),
+       ('Private Access', 'Grants private access to files', 'Private'),
+       ('Limited Access', 'Grants limited access to files', 'Limited');
+
+
+
+
+INSERT INTO UserActivity (FileID, ActivityType)
+VALUES (1, 'Upload'), 
+       (2, 'Download'), 
+       (3, 'Edit'), 
+       (1, 'Download'), 
+       (2, 'Upload'), 
+       (3, 'Download'), 
+       (4, 'Upload'), 
+       (4, 'Download'), 
+       (5, 'Upload'), 
+       (5, 'Download');
+
+
+INSERT INTO FileVersion (VersionNumber, VersionDescription, VersionSize, FileID)
+VALUES (1, 'Initial version', 1024, 1),
+       (2, 'Added new feature', 2048, 1),
+       (1, 'Initial version', 4096, 2),
+       (2, 'Fixed bug in previous version', 8192, 2),
+       (1, 'Initial version', 16384, 3),
+       (2, 'Improved performance', 32768, 3),
+       (3, 'Added new functionality', 65536, 3),
+       (1, 'Initial version', 131072, 4),
+       (2, 'Fixed critical security vulnerability', 262144, 4),
+       (3, 'Added new feature', 524288, 4);
+
+
+
+INSERT INTO FileFormat (FormatName, FormatDescription)
+VALUES ('PDF', 'Portable Document Format developed by Adobe'),
+       ('DOCX', 'Microsoft Word file format introduced in 2007'),
+       ('XLSX', 'Microsoft Excel file format introduced in 2007'),
+       ('JPEG', 'Joint Photographic Experts Group image file format'),
+       ('PNG', 'Portable Network Graphics image file format'),
+       ('MP4', 'MPEG-4 Part 14 digital multimedia container format'),
+       ('WAV', 'Waveform Audio File Format developed by Microsoft and IBM'),
+       ('FLAC', 'Free Lossless Audio Codec'),
+       ('GIF', 'Graphics Interchange Format developed by CompuServe'),
+       ('TIFF', 'Tagged Image File Format commonly used for storing images and photographs');
+
+
+
+
+INSERT INTO Notification (NotificationType, NotificationMessage) VALUES
+('System', 'Your password has been reset.'),
+('System', 'Your account has been created.'),
+('System', 'Your account has been deactivated.'),
+('Reminder', 'You have an upcoming meeting.'),
+('Reminder', 'Your deadline for project submission is approaching.'),
+('Reminder', 'You have not completed your profile information.'),
+('Information', 'New updates are available for download.'),
+('Information', 'You have successfully completed your training.'),
+('Information', 'You have new messages in your inbox.'),
+('Warning', 'Your account is about to reach its storage limit.');
+
+
+
+INSERT INTO UserGroup (GroupName, GroupDescription) VALUES
+('Administrators', 'Users with administrative privileges'),
+('Developers', 'Users responsible for developing software'),
+('Sales', 'Users responsible for sales and marketing'),
+('Customer Support', 'Users responsible for providing customer support'),
+('Human Resources', 'Users responsible for HR-related tasks'),
+('Finance', 'Users responsible for financial tasks'),
+('Designers', 'Users responsible for graphic design and user experience'),
+('Content Editors', 'Users responsible for creating and editing content'),
+('IT', 'Users responsible for maintaining the company IT infrastructure'),
+('Quality Assurance', 'Users responsible for testing software and ensuring quality');
+
+
+
+INSERT INTO Tag (TagName, TagDescription) VALUES
+('Technology', 'This tag is for articles related to technology.'),
+('Business', 'This tag is for articles related to business.'),
+('Travel', 'This tag is for articles related to travel.'),
+('Food', 'This tag is for articles related to food.'),
+('Fashion', 'This tag is for articles related to fashion.'),
+('Health', 'This tag is for articles related to health.'),
+('Science', 'This tag is for articles related to science.'),
+('Sports', 'This tag is for articles related to sports.'),
+('Entertainment', 'This tag is for articles related to entertainment.'),
+('Politics', 'This tag is for articles related to politics.');

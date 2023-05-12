@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+
+  mariadb:
+    restart: always
+    build:
+      context: ./mariadb
+      dockerfile: Dockerfile
+    # image: mariadb
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ./data/make-filesharingdb.sql:/docker-entrypoint-initdb.d/init.sql
+    command: ["mysqld"]
+
+  app:
+    restart: always
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    # image: ui-applied-db
+    container_name: app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./ui:/app  
+    depends_on:
+      - mariadb      

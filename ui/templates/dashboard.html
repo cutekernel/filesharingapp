@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to your Dashboard, {{username}}!</h1>
+    <hr>
+    <div class="row">
+      <div class="col-md-4">
+        <h2>Profile</h2>
+        <ul class="list-group">
+          <li class="list-group-item">Username: {{username}}</li>
+          <li class="list-group-item">Email: {{email}}</li>
+          <li class="list-group-item">Registration Date: {{registration_date}}</li>
+          <li class="list-group-item">Last Login Date: {{last_login_date}}</li>
+          <li class="list-group-item">User Profile: {{user_profile}}</li>
+        </ul>
+        <a class="btn btn-primary" href="#">Edit Profile</a>
+      </div>
+      <div class="col-md-4">
+        <h2>Files</h2>
+        <ul class="list-group">
+          {% for file in files %}
+          <li class="list-group-item"><a href="#">{{file.file_name}}</a></li>
+          {% endfor %}
+        </ul>
+        <a class="btn btn-primary" href="#">Upload File</a>
+      </div>
+      <div class="col-md-4">
+        <h2>Notifications</h2>
+        <ul class="list-group">
+          {% for notification in notifications %}
+          <li class="list-group-item">{{notification.notification_message}}</li>
+          {% endfor %}
+        </ul>
+        <a class="btn btn-primary" href="#">Clear Notifications</a>
+      </div>
+    </div>
+  </div>
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
