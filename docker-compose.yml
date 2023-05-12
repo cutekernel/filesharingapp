@@ -14,6 +14,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
     volumes:
       - ./data/make-filesharingdb.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/data.sql:/appdata/data.sql
     command: ["mysqld"]
 
   app:

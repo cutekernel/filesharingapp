@@ -30,6 +30,9 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
+
+
+
         # Execute the SQL query to retrieve the user with the given username and password
         # query = "INSERT INTO customer (customer_name, customer_city, customer_street) VALUES (:customer_name, :customer_city, :customer_street)"
         # db.session.execute(text(query), {"customer_name": customer_name, "customer_city": customer_city, "customer_street": customer_street})     
@@ -38,11 +41,7 @@ def login():
         user = queryuser.fetchone()
         userdata = {key: value for key, value in zip(queryuser.keys(), user)}
 
-        # query more information for this user
-        query = "SELECT * FROM File WHERE OwnerID = :userid"    
-        # queryuserfiles= db.session.execute(text(query), {"userid": userdata['UserID']})
-        queryuserfiles= db.session.execute(text(query), {"userid": "1"})
-        files = queryuser.fetchall()
+
 
 
         # Close the database connection
@@ -54,19 +53,18 @@ def login():
             session['UserData'] = userdata
 
 
-            # # query more information for this user
-            # query = "SELECT * FROM File WHERE OwnerID = :userid"    
-            # # queryuserfiles= db.session.execute(text(query), {"userid": userdata['UserID']})
-            # queryuserfiles= db.session.execute(text(query), {"userid": "1"})
-            # files = queryuser.fetchall()
+            # # # query more information for this user
+            query = "SELECT * FROM File WHERE UserID = :userid"    
+            queryuserfiles= db.session.execute(text(query), {"userid": userdata['UserID']})
+            files = queryuserfiles.fetchall()
 
             userfiles = {key: value for key, value in zip(queryuserfiles.keys(), files)}
-            
-            query = "SELECT * FROM user_receives_notification"    
-            queryusernotifs= db.session.execute(text(query))
-            # queryusernotifs= db.session.execute(text(query), {"Userid": userdata['UserID']})
-            notifs = queryuser.fetchall()
-            return jsonify({'message': str(queryusernotifs.keys()) + str(queryuserfiles.keys()) + str(userdata)} )
+
+            query = "SELECT * FROM user_receives_notification WHERE UserID = :userid"   
+            queryusernotifs= db.session.execute(text(query), {"userid": userdata['UserID']})
+            notifs = queryusernotifs.fetchall()
+
+            return jsonify({'message': str(notifs) + str(files) + str(userdata['Username'])} )
 
             # usernotifs = {key: value for key, value in zip(queryusernotifs.keys(), notifs)}
 
