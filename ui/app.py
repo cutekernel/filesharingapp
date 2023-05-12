@@ -22,6 +22,11 @@ app.secret_key = 'your_secret_key'
 db = SQLAlchemy()
 db.init_app(app)
 
+
+# Global variables:
+UPLOAD_FOLDER = '/home'
+ALLOWED_EXTENSIONS = {'pdf', 'docx', 'xlsx', 'pptx', 'jpg', 'png', 'mp3', 'txt', 'psd', 'py'}
+
 # Define the login route
 @app.route('/', methods=["POST", "GET"])
 @app.route('/login', methods=['GET', 'POST'])
@@ -47,6 +52,7 @@ def login():
             session['loggedin'] = True
             session['username'] = username
             session['UserData'] = userdata
+            session['UserID'] = userdata['UserID']
 
 
             # # # query more information for this user
@@ -192,22 +198,24 @@ def register():
 
 @app.route('/getnotifications', methods=['GET', 'POST'])
 def getnotifications():
+    if session['UserData']:
+        # get the notifications associated with a user and create a list
+        query = "SELECT * FROM user_receives_notification WHERE UserID = :userid"   
+        queryusernotifs= db.session.execute(text(query), {"userid": session['UserData']['UserID']})
+        notifids = queryusernotifs.fetchall()
+        allusernotifs=[]
 
-    # get the notifications associated with a user and create a list
-    query = "SELECT * FROM user_receives_notification WHERE UserID = :userid"   
-    queryusernotifs= db.session.execute(text(query), {"userid": session['UserData']['UserID']})
-    notifids = queryusernotifs.fetchall()
-    allusernotifs=[]
+        #once you get the list make sure you display the notifications as items in a list
+        for notif in notifids:
+                sub_query= "SELECT * FROM Notification WHERE NotificationID = :notifid"
+                sub_queryusernotifs= db.session.execute(text(sub_query), {"notifid": notif[1]})
+                resusernotifs = sub_queryusernotifs.fetchone()
+                usernotifs = {key: value for key, value in zip(sub_queryusernotifs.keys(), resusernotifs)}
+                allusernotifs.append(usernotifs)
 
-    #once you get the list make sure you display the notifications as items in a list
-    for notif in notifids:
-            sub_query= "SELECT * FROM Notification WHERE NotificationID = :notifid"
-            sub_queryusernotifs= db.session.execute(text(sub_query), {"notifid": notif[1]})
-            resusernotifs = sub_queryusernotifs.fetchone()
-            usernotifs = {key: value for key, value in zip(sub_queryusernotifs.keys(), resusernotifs)}
-            allusernotifs.append(usernotifs)
-
-    return jsonify({'notification': str(allusernotifs)})
+        return jsonify({'notification': str(allusernotifs)})
+    else:
+         redirect('/login')
     # get all the notifications for the logged in user and return them in a json format
     # return render_template('notifications.html')
 
@@ -216,30 +224,162 @@ def getprofile():
     
     # get the user profile
     # simply display user information
-    return render_template('profile.html')
+    if session['username']:
+        query = "SELECT * FROM User WHERE Username = :Username"    
+        queryuser= db.session.execute(text(query), {"Username": session['username']})
+        user = queryuser.fetchone()
+        userdata = {key: value for key, value in zip(queryuser.keys(), user)} 
+        return jsonify(str(userdata))
+        # return render_template('profile.html')
+    else:
+         redirect('/login')
     
 
-@app.route('/deleteprofile', methods=['GET', 'POST'])
-def deleteprofile():
+@app.route('/deleteprofile/<username>', methods=['GET', 'POST'])
+def deleteprofile(username):
     # delete a profile
     # find the username and delete it from the database
     # delete the files associated with the user
+
+    # delete user from user table
+    query = "DELETE * FROM User WHERE UserID = :userid"
+
+    db.session.commit()
+    #delete files with that userid
+    query = "DELETE * FROM File WHERE UserID = :userid"
+    db.session.commit()
+
+    #delete notifications associated with the userid
+    query = "DELETE * FROM Notification WHERE UserID = :userid"
+    db.session.commit()
+    
+    # delete the user from a group
+    query = "DELETE * FROM user_belongs_group WHERE UserID = :userid"
+    db.session.commit()
+
+    # delete any activity related to the userid
+    query = "DELETE FROM UserActivity WHERE UserID = :userid"
+    db.session.commit()
+    
+    return redirect('/login')
     pass
 
 
 @app.route('/updateprofile', methods=['GET', 'POST'])
 def updateprofile():
-    # update the user profile information
-    pass
-    return render_template('profile.html')
+    if request.method == 'POST':
+        if session['username']:
+            # Retrieve the updated profile information from the form
+            username = request.form['username']
+            email = request.form['email']
+            password = request.form['password']
+            userprofile = request.form['userprofile']
+            
+            # Construct the SQL query dynamically based on the provided values
+            query = "UPDATE User SET"
+            params = {}
+
+            if username:
+                query += " Username = :username,"
+                params['username'] = username
+
+            if email:
+                query += " Email = :email,"
+                params['email'] = email
+            
+            if password:
+                query += " Password = :password,"
+                params['password'] = password
+            
+            if userprofile:
+                query += " UserProfile = :userprofile,"
+                params['userprofile'] = userprofile
+            
+            # Remove the trailing comma from the query
+            query = query.rstrip(',')
+            
+            # Append the WHERE clause to update the specific user
+            query += " WHERE UserID = :userid"
+            params['userid'] = session['UserID']
+            
+            # Execute the SQL query to update the user profile information
+            db.session.execute(text(query), params)
+            db.session.commit()
+            session['username'] = username
+            # Redirect to the profile page
+            return redirect('/updateprofile')
+        else:
+            # Redirect to the profile page
+            return redirect('/updateprofile')
+    
+    # If the request method is GET, show the profile update form
+    return render_template('profile.html', username=session['username'])
+
 
 
 @app.route('/uploadfile', methods=['GET', 'POST'])
-def uploadfile():
-    # upload a file == add an record to the File table
-    # if it has the same name as another file, search for that name in the File table and if found make it the latestversion of that file
-    pass
+def uploadfile(): 
+    if request.method == 'POST':
+        # Check if a file was provided in the request
+        if 'file' not in request.files:
+            # flash('No file selected.')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        
+        # Check if a filename was provided
+        if file.filename == '':
+            # flash('No file selected.')
+            return redirect(request.url)
+        
+        # Check if the file extension is allowed
+        if not allowed_file(file.filename):
+            # flash('Invalid file format.')
+            return redirect(request.url)
+        
+        # Save the file to the upload folder
+        file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(file_path)
+        
+        # Check if a file with the same name already exists in the File table
+        query = "SELECT * FROM File WHERE FileName = :filename"
+        existing_file = db.session.execute(text(query), {"filename": file.filename}).fetchone()
+        
+        if existing_file:
+            # Update the existing file to the latest version
+            update_query = "UPDATE File SET UploadDate = :upload_date, FileSize = :file_size WHERE FileID = :file_id"
+            db.session.execute(
+                text(update_query),
+                {
+                    "upload_date": datetime.now(),
+                    "file_size": os.path.getsize(file_path),
+                    "file_id": existing_file['FileID']
+                }
+            )
+            db.session.commit()
+        else:
+            # Create a new record for the file in the File table
+            insert_query = "INSERT INTO File (FileName, FileSize, UploadDate) VALUES (:filename, :file_size, :upload_date)"
+            db.session.execute(
+                text(insert_query),
+                {
+                    "filename": file.filename,
+                    "file_size": os.path.getsize(file_path),
+                    "upload_date": datetime.now()
+                }
+            )
+            db.session.commit()
+        
+        # flash('File uploaded successfully.')
+        return redirect('/uploadfile')
+    
+    # If the request method is GET, show the file upload form
     return render_template('upload.html')
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route('/getfiledetails', methods=['GET', 'POST'])
