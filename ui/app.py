@@ -42,8 +42,6 @@ def login():
         userdata = {key: value for key, value in zip(queryuser.keys(), user)}
 
 
-
-
         # Close the database connection
         # db.session.commit()
         # If the user is found, store their information in a session and redirect to the dashboard
@@ -55,16 +53,37 @@ def login():
 
             # # # query more information for this user
             query = "SELECT * FROM File WHERE UserID = :userid"    
+            
+            #get the files associated with a userID
             queryuserfiles= db.session.execute(text(query), {"userid": userdata['UserID']})
             files = queryuserfiles.fetchall()
+            userfiles = []
+            for file in files:
+                 m_file={key: value for key, value in zip(queryuserfiles.keys(), file)}
+                 userfiles.append(m_file)
 
-            userfiles = {key: value for key, value in zip(queryuserfiles.keys(), files)}
 
+
+            # get the notifications associated with a user and create a list
             query = "SELECT * FROM user_receives_notification WHERE UserID = :userid"   
             queryusernotifs= db.session.execute(text(query), {"userid": userdata['UserID']})
-            notifs = queryusernotifs.fetchall()
+            notifids = queryusernotifs.fetchall()
+            allusernotifs=[]
 
-            return jsonify({'message': str(notifs) + str(files) + str(userdata['Username'])} )
+            #once you get the list make sure you display the notifications as items in a list
+            for notif in notifids:
+                 sub_query= "SELECT * FROM Notification WHERE NotificationID = :notifid"
+                 sub_queryusernotifs= db.session.execute(text(sub_query), {"notifid": notif[1]})
+                 resusernotifs = sub_queryusernotifs.fetchone()
+                 usernotifs = {key: value for key, value in zip(sub_queryusernotifs.keys(), resusernotifs)}
+                 allusernotifs.append(usernotifs)
+
+
+            # return jsonify({'message': str(notifs) + str(files) + str(userdata['Username']),
+            return jsonify({'Username': str(userdata['Username']),
+                            'notifications': str(allusernotifs) ,
+                            'files:': str(userfiles)
+                            } )
 
             # usernotifs = {key: value for key, value in zip(queryusernotifs.keys(), notifs)}
 
