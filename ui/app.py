@@ -31,9 +31,6 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-
-
-
         # Execute the SQL query to retrieve the user with the given username and password
         # query = "INSERT INTO customer (customer_name, customer_city, customer_street) VALUES (:customer_name, :customer_city, :customer_street)"
         # db.session.execute(text(query), {"customer_name": customer_name, "customer_city": customer_city, "customer_street": customer_street})     
@@ -106,8 +103,51 @@ def login():
     else:
         return render_template('login.html')
 
+
+# Route for logging out
+@app.route('/logout')
+def logout():
+    # Clear the session data
+    session.clear()
+
+    # Redirect to the login page
+    return redirect('/login')
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
+        
+        if session['username'] and session['UserData']:
+            username = session['username']
+            userdata = session['UserData']
+
+            # # # query more information for this user
+            query = "SELECT * FROM File WHERE UserID = :userid"    
+            
+            #get the files associated with a userID
+            queryuserfiles= db.session.execute(text(query), {"userid": userdata['UserID']})
+            files = queryuserfiles.fetchall()
+            userfiles = []
+            # store each file in a list with its corresponding attributes
+            for file in files:
+                    m_file={key: value for key, value in zip(queryuserfiles.keys(), file)}
+                    userfiles.append(m_file)
+
+            # get the notifications associated with a user and create a list
+            query = "SELECT * FROM user_receives_notification WHERE UserID = :userid"   
+            queryusernotifs= db.session.execute(text(query), {"userid": userdata['UserID']})
+            notifids = queryusernotifs.fetchall()
+            allusernotifs=[]
+
+            #once you get the list make sure you display the notifications as items in a list
+            for notif in notifids:
+                    sub_query= "SELECT * FROM Notification WHERE NotificationID = :notifid"
+                    sub_queryusernotifs= db.session.execute(text(sub_query), {"notifid": notif[1]})
+                    resusernotifs = sub_queryusernotifs.fetchone()
+                    usernotifs = {key: value for key, value in zip(sub_queryusernotifs.keys(), resusernotifs)}
+                    allusernotifs.append(usernotifs)
+        else:
+             return redirect('/login')
+
         return render_template('dashboard.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -136,16 +176,113 @@ def register():
                 'UserProfile': userprofile,
             }
         )
+        db.session.commit()
+        
         #verify that the user is inserted
-        query = "SELECT * from User WHERE Username = :username" + username
+        query = "SELECT * from User WHERE Username = :username"
         insertuser = db.session.execute(text(query), {'username': username})
         if insertuser.fetchone():
+            # need to redirect to login
             return jsonify({'message': 'user successfully inserted. Please login now'})
         else:
             return render_template('login.html')
 
     return render_template('login.html')
+
+
+@app.route('/getnotifications', methods=['GET', 'POST'])
+def getnotifications():
+
+    # get the notifications associated with a user and create a list
+    query = "SELECT * FROM user_receives_notification WHERE UserID = :userid"   
+    queryusernotifs= db.session.execute(text(query), {"userid": session['UserData']['UserID']})
+    notifids = queryusernotifs.fetchall()
+    allusernotifs=[]
+
+    #once you get the list make sure you display the notifications as items in a list
+    for notif in notifids:
+            sub_query= "SELECT * FROM Notification WHERE NotificationID = :notifid"
+            sub_queryusernotifs= db.session.execute(text(sub_query), {"notifid": notif[1]})
+            resusernotifs = sub_queryusernotifs.fetchone()
+            usernotifs = {key: value for key, value in zip(sub_queryusernotifs.keys(), resusernotifs)}
+            allusernotifs.append(usernotifs)
+
+    return jsonify({'notification': str(allusernotifs)})
+    # get all the notifications for the logged in user and return them in a json format
+    # return render_template('notifications.html')
+
+@app.route('/getprofile', methods=['GET', 'POST'])
+def getprofile():
     
+    # get the user profile
+    # simply display user information
+    return render_template('profile.html')
+    
+
+@app.route('/deleteprofile', methods=['GET', 'POST'])
+def deleteprofile():
+    # delete a profile
+    # find the username and delete it from the database
+    # delete the files associated with the user
+    pass
+
+
+@app.route('/updateprofile', methods=['GET', 'POST'])
+def updateprofile():
+    # update the user profile information
+    pass
+    return render_template('profile.html')
+
+
+@app.route('/uploadfile', methods=['GET', 'POST'])
+def uploadfile():
+    # upload a file == add an record to the File table
+    # if it has the same name as another file, search for that name in the File table and if found make it the latestversion of that file
+    pass
+    return render_template('upload.html')
+
+
+@app.route('/getfiledetails', methods=['GET', 'POST'])
+def getfiledetails():
+    # display the file details of a specific version
+    pass
+    return render_template('filedetails.html')
+
+
+@app.route('/getfileversionhistory', methods=['GET', 'POST'])
+def getfileversionhistory():
+    # display the file version history
+    pass
+    return render_template('fileversionhistory.html')
+
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    # search a file by name and/or other attributes
+    pass
+    return render_template('search.html')
+
+
+@app.route('/addusertogroup', methods=['GET', 'POST'])
+def addusertogroup():
+    # add a user to a group
+    pass
+    return render_template('user_group_management.html')
+
+
+@app.route('/addtags', methods=['GET', 'POST'])
+def addtags():
+    # add tags to a file
+    pass  
+    return render_template('tag_management.html')
+
+
+@app.route('/removetags', methods=['GET', 'POST'])
+def removetags():
+    pass        
+    return render_template('tag_management.html')
+
+
 
 @app.route("/displaydowntown", methods=["POST", "GET"])
 def displaydowntown():
