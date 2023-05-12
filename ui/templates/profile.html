@@ -5,6 +5,8 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 </head>
 <body>
+  {% include 'navigation.html'%}    
+
   <div class="container">
     <h1>Update Profile</h1>
     <h4>You are logged in as {{username}}</h4>
@@ -36,6 +38,7 @@
     </form>
 
   </div>
+  {% include 'footer.html'%}    
 
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </body>

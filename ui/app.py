@@ -132,7 +132,7 @@ def logout():
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
         
-        if session['username'] and session['UserData']:
+        if (len(session['username']) > 0) and (len(session['UserData']) > 0):
             username = session['username']
             userdata = session['UserData']
 
@@ -164,7 +164,17 @@ def dashboard():
         else:
              return redirect('/login')
 
-        return render_template('dashboard.html')
+        return render_template('dashboard.html',
+                                username=str(userdata['Username']), 
+                                email = str(userdata['Email']), 
+                                registration_date = str(userdata['RegistrationDate']), 
+                                last_login_date = str(userdata['LastLoginDate']), 
+                                user_profile = str(userdata['UserProfile']),
+                                files = userfiles,
+                                notifications =allusernotifs
+                                )  
+
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -204,10 +214,10 @@ def register():
         if insertuser.fetchone():
             # need to redirect to login
             # return jsonify({'message': 'user successfully inserted. Please login now'})
-            return render_template('login.html')
+            return render_template('login.html', loggedin = session['loggedin'])
         
         else:
-            return render_template('login.html')
+            return render_template('login.html', loggedin = session['loggedin'])
 
     return render_template('register.html')
 
@@ -231,7 +241,8 @@ def getnotifications():
 
         return jsonify({'notification': str(allusernotifs)})
     else:
-         redirect('/login')
+        #  redirect('/login')
+         return render_template('login.html')
     # get all the notifications for the logged in user and return them in a json format
     # return render_template('notifications.html')
 
@@ -333,13 +344,13 @@ def updateprofile():
             db.session.commit()
             session['username'] = username
             # Redirect to the profile page
-            return redirect('/updateprofile')
+            return redirect('/dashboard')
         else:
             # Redirect to the profile page
             return redirect('/updateprofile')
     
     # If the request method is GET, show the profile update form
-    return render_template('profile.html', username=session['username'])
+    return render_template('profile.html')
 
 
 
@@ -401,8 +412,6 @@ def uploadfile():
     
     # If the request method is GET, show the file upload form
     return render_template('upload.html')
-
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -411,8 +420,16 @@ def allowed_file(filename):
 @app.route('/getfiledetails', methods=['GET', 'POST'])
 def getfiledetails():
     # display the file details of a specific version
-    pass
-    return render_template('filedetails.html')
+    # Retrieve the file details of a specific file using SQL statements
+    fileid = request.args.get('file_id')
+    query = "SELECT * FROM File WHERE FileID = :file_id"
+    result = db.session.execute(text(query), {'file_id': fileid})
+    m_filedetails = result.fetchone()
+    # store each file in a list with its corresponding attributes
+    m_file={key: value for key, value in zip(result.keys(), m_filedetails)}
+    # Render the template and pass the file details as a parameter
+    return render_template('filedetails.html', file_details=m_file)
+    # return render_template('filedetails.html')
 
 
 @app.route('/getfileversionhistory', methods=['GET', 'POST'])
@@ -425,9 +442,18 @@ def getfileversionhistory():
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     # search a file by name and/or other attributes
+    # only show files based on ac rules (=shared files)
+    # if the user has admin access level then no restriction
+    # if the user has employee access lvel then certiain file categories are ignored.
     pass
     return render_template('search.html')
 
+
+@app.route('/manageusers', methods=['GET', 'POST'])
+def manageusers():
+    # add a user to a group
+    pass
+    return render_template('user_group_management.html')
 
 @app.route('/addusertogroup', methods=['GET', 'POST'])
 def addusertogroup():

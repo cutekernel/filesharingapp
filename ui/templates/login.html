@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <title>Login - File Sharing App</title>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-</head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"></head>
 <body>
   <!-- Include the navigation bar -->
-  {% include 'navigation.html'%}    
+   {% include 'navigation.html'%}    
     <div class="container">
         <h1>Login to File Sharing App</h1>
         {% if error %}
@@ -26,7 +25,9 @@
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
         <a href="{{ url_for('register') }}">Register</a>
+        
     </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-fU4KXUu4sPbknmZkTKpKj7Vw/iSrmMx7V1aCkKyUjKsU4+GDL6Vctn6ZmdGq3wDp" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.min.js" integrity="sha384-YtLgE9aIQoqb4I4t4a2lz+FMwPo8WxU5/6LrV5C1vx6UfAj7GwB6U1N7kSwz6nlt" crossorigin="anonymous"></script>

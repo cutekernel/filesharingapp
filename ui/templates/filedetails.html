@@ -24,6 +24,7 @@
 </head>
 
 <body>
+  {% include 'navigation.html'%}    
 
   <div class="container">
 
@@ -32,34 +33,15 @@
     <div class="card">
       <div class="card-body">
 
-        <!-- File Name -->
-        <h5 class="card-title">File Name:</h5>
-        <p class="card-text">{{ file_name }}</p>
-
-        <!-- File Size -->
-        <h5 class="card-title">File Size:</h5>
-        <p class="card-text">{{ file_size }}</p>
-
-        <!-- File Format -->
-        <h5 class="card-title">File Format:</h5>
-        <p class="card-text">{{ file_format }}</p>
-
-        <!-- File Category -->
-        <h5 class="card-title">File Category:</h5>
-        <p class="card-text">{{ file_category }}</p>
-
-        <!-- File Owner -->
-        <h5 class="card-title">File Owner:</h5>
-        <p class="card-text">{{ file_owner }}</p>
-
-        <!-- Upload Date -->
-        <h5 class="card-title">Upload Date:</h5>
-        <p class="card-text">{{ upload_date }}</p>
-
+        {% for attr,value in file_details.items() %}
+        <h5 class="card-title">{{ attr }}</h5>
+        <p class="card-text">{{ value }}</p>
+        {% endfor %}
       </div>
     </div>
 
   </div>
+  {% include 'footer.html'%}    
 
 </body>
 
