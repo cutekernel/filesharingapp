@@ -27,7 +27,7 @@
         <h2>Files</h2>
         <ul class="list-group">
           {% for file in files %}
-          <li class="list-group-item"><a href="#">{{file.file_name}}</a></li>
+          <li class="list-group-item"><a href="#">{{file}}</a></li>
           {% endfor %}
         </ul>
         <a class="btn btn-primary" href="#">Upload File</a>
@@ -36,7 +36,7 @@
         <h2>Notifications</h2>
         <ul class="list-group">
           {% for notification in notifications %}
-          <li class="list-group-item">{{notification.notification_message}}</li>
+          <li class="list-group-item">{{notification}}</li>
           {% endfor %}
         </ul>
         <a class="btn btn-primary" href="#">Clear Notifications</a>

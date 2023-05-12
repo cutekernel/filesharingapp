@@ -3,6 +3,7 @@ from sqlalchemy import text
 from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import datetime
+from sqlalchemy.exc import *
 
 #  chnage the mariadb:3306 to your IP for example 127.0.0.1:3306
 MARIADB_URL = os.environ.get("MARIADB_URL", "mariadb:3306")
@@ -84,11 +85,20 @@ def login():
 
 
             # return jsonify({'message': str(notifs) + str(files) + str(userdata['Username']),
-            return jsonify({'Username': str(userdata['Username']),
-                            'notifications': str(allusernotifs) ,
-                            'files:': str(userfiles)
-                            } )
+            # return jsonify({'Username': str(userdata['Username']),
+            #                 'notifications': str(allusernotifs) ,
+            #                 'files:': str(userfiles)
+            #                 } )
 
+            return render_template('dashboard.html',
+                                   username=str(userdata['Username']), 
+                                   email = str(userdata['Email']), 
+                                   registration_date = str(userdata['RegistrationDate']), 
+                                   last_login_date = str(userdata['LastLoginDate']), 
+                                   user_profile = str(userdata['UserProfile']),
+                                   files = userfiles,
+                                   notifications =allusernotifs
+                                   )  
 
             # return render_template('dashboard.html',
             #                        username=str(userdata['Username']), 
@@ -170,30 +180,36 @@ def register():
             INSERT INTO User (Username, Email, Password, RegistrationDate, LastLoginDate, UserProfile)
             VALUES (:Username, :Email, :Password, :RegistrationDate, :LastLoginDate, :UserProfile)
         """
-
-        db.session.execute(
-            text(query),
-            {
-                'Username': username,
-                'Email': email,
-                'Password': password,
-                'RegistrationDate': datetime.now(),
-                'LastLoginDate': datetime.now(),
-                'UserProfile': userprofile,
-            }
-        )
-        db.session.commit()
-        
+        try:
+            db.session.execute(
+                text(query),
+                {
+                    'Username': username,
+                    'Email': email,
+                    'Password': password,
+                    'RegistrationDate': datetime.now(),
+                    'LastLoginDate': datetime.now(),
+                    'UserProfile': userprofile,
+                }
+            )
+            db.session.commit()
+        except IntegrityError as e:
+            # Handle the duplicate entry error
+            error_message = str(e)
+            # You can display an error message or redirect to an error page
+            return render_template('error.html', error=error_message)        
         #verify that the user is inserted
         query = "SELECT * from User WHERE Username = :username"
         insertuser = db.session.execute(text(query), {'username': username})
         if insertuser.fetchone():
             # need to redirect to login
-            return jsonify({'message': 'user successfully inserted. Please login now'})
+            # return jsonify({'message': 'user successfully inserted. Please login now'})
+            return render_template('login.html')
+        
         else:
             return render_template('login.html')
 
-    return render_template('login.html')
+    return render_template('register.html')
 
 
 @app.route('/getnotifications', methods=['GET', 'POST'])
@@ -250,8 +266,6 @@ def deleteprofile(username=None):
                         "DELETE FROM user_receives_notification WHERE UserID = :userid",
                         "DELETE FROM user_belongs_userGroup WHERE UserID = :userid",
                         "DELETE FROM UserActivity WHERE UserID = :userid"
-
-
         ]
         for query in querylist:
             db.session.execute(text(query), {"userid": session['UserID']})
