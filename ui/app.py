@@ -235,34 +235,46 @@ def getprofile():
          redirect('/login')
     
 
+@app.route('/deleteprofile', methods=['GET', 'POST'])
 @app.route('/deleteprofile/<username>', methods=['GET', 'POST'])
-def deleteprofile(username):
-    # delete a profile
-    # find the username and delete it from the database
-    # delete the files associated with the user
+def deleteprofile(username=None):
 
-    # delete user from user table
-    query = "DELETE * FROM User WHERE UserID = :userid"
+    if len(str(session['UserID'])) > 0:
+        # delete a profile
+        # find the username and delete it from the database
+        # delete the files associated with the user
 
-    db.session.commit()
-    #delete files with that userid
-    query = "DELETE * FROM File WHERE UserID = :userid"
-    db.session.commit()
+        querylist = [
+                        "DELETE FROM User WHERE UserID = :userid",
+                        "DELETE FROM File WHERE UserID = :userid",
+                        "DELETE FROM user_receives_notification WHERE UserID = :userid",
+                        "DELETE FROM user_belongs_userGroup WHERE UserID = :userid",
+                        "DELETE FROM UserActivity WHERE UserID = :userid"
 
-    #delete notifications associated with the userid
-    query = "DELETE * FROM Notification WHERE UserID = :userid"
-    db.session.commit()
-    
-    # delete the user from a group
-    query = "DELETE * FROM user_belongs_group WHERE UserID = :userid"
-    db.session.commit()
 
-    # delete any activity related to the userid
-    query = "DELETE FROM UserActivity WHERE UserID = :userid"
-    db.session.commit()
+        ]
+        for query in querylist:
+            db.session.execute(text(query), {"userid": session['UserID']})
+            db.session.commit()
+
+        # # delete user from user table
+        # query = "DELETE * FROM User WHERE UserID = :userid"
+        
+        # #delete files with that userid
+        # query = "DELETE * FROM File WHERE UserID = :userid"
+
+        # #delete notifications associated with the userid
+        # query = "DELETE * FROM Notification WHERE UserID = :userid"
+        
+        # # delete the user from a group
+        # query = "DELETE * FROM user_belongs_group WHERE UserID = :userid"
+
+        # # delete any activity related to the userid
+        # query = "DELETE FROM UserActivity WHERE UserID = :userid"
+
+
     
     return redirect('/login')
-    pass
 
 
 @app.route('/updateprofile', methods=['GET', 'POST'])
