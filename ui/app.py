@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, request, render_temp
 from sqlalchemy import text
 from flask_sqlalchemy import SQLAlchemy
 import os
+from datetime import datetime
 
 #  chnage the mariadb:3306 to your IP for example 127.0.0.1:3306
 MARIADB_URL = os.environ.get("MARIADB_URL", "mariadb:3306")
@@ -58,10 +59,10 @@ def login():
             queryuserfiles= db.session.execute(text(query), {"userid": userdata['UserID']})
             files = queryuserfiles.fetchall()
             userfiles = []
+            # store each file in a list with its corresponding attributes
             for file in files:
                  m_file={key: value for key, value in zip(queryuserfiles.keys(), file)}
                  userfiles.append(m_file)
-
 
 
             # get the notifications associated with a user and create a list
@@ -85,7 +86,6 @@ def login():
                             'files:': str(userfiles)
                             } )
 
-            # usernotifs = {key: value for key, value in zip(queryusernotifs.keys(), notifs)}
 
             # return render_template('dashboard.html',
             #                        username=str(userdata['Username']), 
@@ -110,6 +110,41 @@ def login():
 def dashboard():
         return render_template('dashboard.html')
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST' and 'email' in request.form and 'username' in request.form and 'password' in request.form and 'user_profile'  in request.form:
+        # Get user information from the form
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
+        userprofile = request.form['user_profile']
+
+        # insert user information into the database
+        query = """
+            INSERT INTO User (Username, Email, Password, RegistrationDate, LastLoginDate, UserProfile)
+            VALUES (:Username, :Email, :Password, :RegistrationDate, :LastLoginDate, :UserProfile)
+        """
+
+        db.session.execute(
+            text(query),
+            {
+                'Username': username,
+                'Email': email,
+                'Password': password,
+                'RegistrationDate': datetime.now(),
+                'LastLoginDate': datetime.now(),
+                'UserProfile': userprofile,
+            }
+        )
+        #verify that the user is inserted
+        query = "SELECT * from User WHERE Username = :username" + username
+        insertuser = db.session.execute(text(query), {'username': username})
+        if insertuser.fetchone():
+            return jsonify({'message': 'user successfully inserted. Please login now'})
+        else:
+            return render_template('login.html')
+
+    return render_template('login.html')
     
 
 @app.route("/displaydowntown", methods=["POST", "GET"])
