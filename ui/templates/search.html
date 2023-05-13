@@ -11,7 +11,7 @@
 
   <div class="container mt-5">
     <h1>File Search Page</h1>
-    <form>
+    <form action="/search" method="POST">
       <div class="form-group">
         <label for="name">File Name:</label>
         <input type="text" class="form-control" id="name" name="name">
@@ -51,6 +51,29 @@
     
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
+
+  
+      <h2>Search Results:</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Size</th>
+            <th>Upload Date</th>
+            <!-- Add more columns as needed -->
+          </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+              <td>{{ search_results }}</td>
+
+            </tr>
+
+        </tbody>
+      </table>
+
+
   </div>
   {% include 'footer.html'%}    
 

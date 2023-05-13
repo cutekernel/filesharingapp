@@ -500,12 +500,80 @@ def search():
     # if the user has employee access lvel then certiain file categories are ignored.
     if request.method == 'POST':
         # Get the search query from the form
-        search_query = request.form.get('search_query')
+        name = request.form.get('name')
+        size_operator = request.form.get('size_operator')
+        size = request.form.get('size')
+        category = request.form.get('category')
+        fileformat = request.form.get('format')
 
-        # Perform the search query based on the search query value
-        # ...
+        # Perform the search query based on the search criteria
+        # query = """
+        #     SELECT *
+        #     FROM File
+        # """
 
-        return render_template('search.html', categories=get_categories())
+        # find the fileid by file name
+        query = """
+            SELECT FileID, , f.FileSize, f.UploadDate
+            FROM File
+            WHERE FileName = :name;
+        """
+        
+        # find the file category  based on fileid
+        query = "SELECT categoryID FROM file_has_filecategory WHERE FileID = :fileid " 
+        # find the file size based on id
+        query = "SELECT "
+        # find find format based on fileid
+
+        # Perform the search query based on the search criteria
+        # query = """
+        #     SELECT f.FileName, f.FileSize, f.UploadDate
+        #     FROM File AS f
+        #     JOIN FileFormat AS ff ON f.FormatID = ff.FormatID
+        #     JOIN file_has_filecategory AS fc ON f.CategoryID = fc.categoryID
+        #     WHERE 1=1
+        # """
+
+        query = """
+                SELECT f.FileName, f.FileSize, f.UploadDate
+                FROM File AS f
+                JOIN FileFormat AS ff ON f.FormatID = ff.FormatID
+                JOIN file_has_filecategory AS fc ON f.FileID = fc.FileID
+                JOIN FileCategory AS ca ON fc.categoryID = ca.CategoryID
+                WHERE 1=1
+                """        
+
+        params = {}
+
+        if name:
+            query += " AND f.FileName = :name"
+            params['name'] = name
+
+        if size and size_operator:
+            if size_operator == 'greater':
+                query += " AND f.FileSize > :size"
+            elif size_operator == 'less':
+                query += " AND f.FileSize < :size"
+            elif size_operator == 'equal':
+                query += " AND f.FileSize = :size"
+
+            params['size'] = size
+
+        if category:
+            query += " AND ca.CategoryName = :category"
+            params['category'] = category
+
+        if fileformat:
+            query += " AND ff.FormatName = :format"
+            params['format'] = fileformat
+
+        # Execute the query and fetch results
+        results =  db.session.execute(text(query), params)  # Replace with your database library
+        resfile= results.fetchall()
+        # Sort the results by upload date (assuming it's a datetime column)
+        # results.sort(key=lambda x: x.upload_date)
+
+        return render_template('search.html', categories=get_categories(), fileformats=get_fileformats(), search_results=str(resfile))
 
     # If the request method is GET or no search query is provided, render the search page
     return render_template('search.html', categories=get_categories(), fileformats=get_fileformats())
