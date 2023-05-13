@@ -18,26 +18,42 @@
       </div>
       <div class="form-group">
         <label for="size">File Size:</label>
-        <input type="text" class="form-control" id="size" name="size">
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <select class="form-control" id="size_operator" name="size_operator">
+              <option value="greater">Greater than</option>
+              <option value="less">Less than</option>
+              <option value="equal">Equal to</option>
+            </select>
+          </div>
+          <input type="text" class="form-control" id="size" name="size">
+        </div>
       </div>
       <div class="form-group">
         <label for="category">File Category:</label>
         <select class="form-control" id="category" name="category">
           <option value="">Select a Category</option>
-          <option value="document">Document</option>
-          <option value="image">Image</option>
-          <option value="audio">Audio</option>
-          <option value="video">Video</option>
-          <option value="other">Other</option>
+          {% for category in categories %}
+            <option value="{{ category }}">{{ category }}</option>
+          {% endfor %}
         </select>
       </div>
+
       <div class="form-group">
-        <label for="format">File Format:</label>
-        <input type="text" class="form-control" id="format" name="format">
+        <label for="format">File Extension:</label>
+        <select class="form-control" id="format" name="format">
+          <option value="">Select an extension</option>
+          {% for fileformat in fileformats %}
+            <option value="{{ fileformat }}">{{ fileformat }}</option>
+          {% endfor %}
+        </select>
       </div>
+    
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
   </div>
+  {% include 'footer.html'%}    
+
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>

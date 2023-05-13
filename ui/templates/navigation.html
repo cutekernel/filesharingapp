@@ -1,7 +1,14 @@
 <!-- navigation.html -->
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  {% if session['loggedin'] %}
+    <a class="navbar-brand" href="{{ url_for('dashboard') }}">FileSharing DMBS App</a>
+    {% else %}        
     <a class="navbar-brand" href="#">FileSharing DMBS App</a>
+
+    {% endif %}
+
+
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>

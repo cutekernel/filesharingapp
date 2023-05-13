@@ -498,9 +498,39 @@ def search():
     # only show files based on ac rules (=shared files)
     # if the user has admin access level then no restriction
     # if the user has employee access lvel then certiain file categories are ignored.
-    pass
-    return render_template('search.html')
+    if request.method == 'POST':
+        # Get the search query from the form
+        search_query = request.form.get('search_query')
 
+        # Perform the search query based on the search query value
+        # ...
+
+        return render_template('search.html', categories=get_categories())
+
+    # If the request method is GET or no search query is provided, render the search page
+    return render_template('search.html', categories=get_categories(), fileformats=get_fileformats())
+
+def get_categories():
+    # Query the database to retrieve the list of categories
+    # You can customize this part to retrieve the categories based on your database schema and criteria
+
+    # Example: Retrieve categories from a Categories table
+    query = "SELECT CategoryName FROM FileCategory"
+    result = db.session.execute(text(query))
+    categories = [row[0] for row in result.fetchall()]
+
+    return categories
+
+def get_fileformats():
+    # Query the database to retrieve the list of fileformats
+    # You can customize this part to retrieve the fileformats based on your database schema and criteria
+
+    # Example: Retrieve fileformats from a fileformat table
+    query = "SELECT FormatName FROM FileFormat"
+    result = db.session.execute(text(query))
+    fileformats = [row[0] for row in result.fetchall()]
+
+    return fileformats
 
 @app.route('/manageusers', methods=['GET', 'POST'])
 def manageusers():
