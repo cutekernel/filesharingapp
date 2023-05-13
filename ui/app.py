@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify, render_template, request, render_template, session, redirect
 from sqlalchemy import text
 from flask_sqlalchemy import SQLAlchemy
-import os
+import os, hashlib
 from datetime import datetime
 from sqlalchemy.exc import *
+
 
 #  chnage the mariadb:3306 to your IP for example 127.0.0.1:3306
 MARIADB_URL = os.environ.get("MARIADB_URL", "mariadb:3306")
@@ -377,12 +378,34 @@ def uploadfile():
         # Save the file to the upload folder
         file_path = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(file_path)
+
+        # Generate the hash of the file using SHA-256
+        with open(file_path, 'rb') as f:
+            file_hash = int(hashlib.sha256(f.read()).hexdigest(), 16) % 2147483647       
+
+        # Get the file extension
+        file_extension = get_file_extension(file.filename)
         
+        # Query the FileFormat table to get the format ID based on the file extension
+        query = "SELECT FormatID FROM FileFormat WHERE FormatName = :extension"
+        format_id = db.session.execute(text(query), {"extension": file_extension}).fetchone()
+        
+        if format_id is None:
+            # The file format is not supported, handle accordingly
+            # flash('Unsupported file format.')
+            return redirect(request.url)
+        
+        format_id = format_id[0]  # Extract the format ID from the result
+        
+
         # Check if a file with the same name already exists in the File table
         query = "SELECT * FROM File WHERE FileName = :filename"
-        existing_file = db.session.execute(text(query), {"filename": file.filename}).fetchone()
+        queryfile = db.session.execute(text(query), {"filename": file.filename})
+        resfile= queryfile.fetchone()
+
         
-        if existing_file:
+        if resfile:
+            existing_file={key: value for key, value in zip(queryfile.keys(), resfile)}
             # Update the existing file to the latest version
             update_query = "UPDATE File SET UploadDate = :upload_date, FileSize = :file_size WHERE FileID = :file_id"
             db.session.execute(
@@ -395,16 +418,43 @@ def uploadfile():
             )
             db.session.commit()
         else:
-            # Create a new record for the file in the File table
-            insert_query = "INSERT INTO File (FileName, FileSize, UploadDate) VALUES (:filename, :file_size, :upload_date)"
+            # Create a new record(file version) for the file in the File table
+            insert_version = """
+                INSERT INTO FileVersion (VersionNumber,VersionDescription, VersionSize, VersionUploadDate)
+                VALUES (:version_number, :version_description, :version_size, :version_upload_date);
+            """
+            result=db.session.execute(
+                text(insert_version),
+                {
+                    "version_number": file_hash,  
+                    "version_description": "Initial version",  # Replace with the appropriate value
+                    "version_size": os.path.getsize(file_path),
+                    "version_upload_date": datetime.now(),
+                }
+            )
+            db.session.commit()
+            version_id = result.lastrowid
+
+                        
+            insert_query = """
+                INSERT INTO File (FileName, FileSize, UploadDate, LatestVersionID, UserID, FormatID)
+                VALUES (:filename, :file_size, :upload_date, :latest_version_id, :user_id, :format_id)
+            """
             db.session.execute(
                 text(insert_query),
                 {
                     "filename": file.filename,
                     "file_size": os.path.getsize(file_path),
-                    "upload_date": datetime.now()
+                    "upload_date": datetime.now(),
+                    "latest_version_id": version_id,  # Replace with the appropriate value
+                    "user_id": session['UserID'],  # Replace with the appropriate value
+                    "format_id": format_id
+                        # Replace with the appropriate value
                 }
             )
+
+            # the size is in Bytes
+
             db.session.commit()
         
         # flash('File uploaded successfully.')
@@ -416,14 +466,17 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_file_extension(filename):
+    return filename.rsplit('.', 1)[1].lower() if '.' in filename else None
+
 
 @app.route('/getfiledetails', methods=['GET', 'POST'])
 def getfiledetails():
-    # display the file details of a specific version
+    # display the file details of the latest version
     # Retrieve the file details of a specific file using SQL statements
     fileid = request.args.get('file_id')
-    query = "SELECT * FROM File WHERE FileID = :file_id"
-    result = db.session.execute(text(query), {'file_id': fileid})
+    query = "SELECT * FROM File WHERE FileID = :file_id AND UserID = :userid"
+    result = db.session.execute(text(query), {'file_id': fileid, 'userid': session['UserID']})
     m_filedetails = result.fetchone()
     # store each file in a list with its corresponding attributes
     m_file={key: value for key, value in zip(result.keys(), m_filedetails)}
