@@ -573,7 +573,7 @@ def search():
         # Sort the results by upload date (assuming it's a datetime column)
         # results.sort(key=lambda x: x.upload_date)
 
-        return render_template('search.html', categories=get_categories(), fileformats=get_fileformats(), search_results=str(resfile))
+        return render_template('search.html', categories=get_categories(), fileformats=get_fileformats(), search_results=resfile)
 
     # If the request method is GET or no search query is provided, render the search page
     return render_template('search.html', categories=get_categories(), fileformats=get_fileformats())
@@ -603,8 +603,69 @@ def get_fileformats():
 @app.route('/manageusers', methods=['GET', 'POST'])
 def manageusers():
     # add a user to a group
-    pass
-    return render_template('user_group_management.html')
+    query = " SELECT * FROM UserGroup"
+    querygroups = db.session.execute(text(query))
+    resgroups = querygroups.fetchall()
+    # allgroups=[]
+    # rgoups={key: value for key, value in zip(querygroups.keys(), resgroups)}
+
+    # find group members
+    query= "SELECT * FROM user_belongs_userGroup "
+    querymembers = db.session.execute(text(query))
+    resmembers = querymembers.fetchall()
+    memberdata = []
+    cnt=0
+    for member in resmembers:
+        app.logger.debug(str(resmembers[0]))
+        # get user information
+        subquery = "SELECT Username from User WHERE UserID = :userid"
+        querymember = db.session.execute(text(subquery), {"userid": member[0]})
+        resmember = querymember.fetchone()[0]
+        # get grop information
+        subgquery = "SELECT GroupName from UserGroup WHERE GroupID = :UserGroup"
+        querygroup = db.session.execute(text(subgquery), {"UserGroup": member[1]})
+        resgroup = querygroup.fetchone()[0] 
+        memberdata.append({"username": resmember, "groupname": resgroup})
+        memberdata.append({"username": resmember, "groupname": resgroup})
+        group_id = member[1]
+        # if group_id not in memberdata:
+        #     memberdata[group_id] = []
+
+        # memberdata[group_id].append({"username": resmember[0], "groupname": resgroup[0]})
+
+        cnt = cnt+1
+        
+        # memberdata.append(str("member" + str(cnt) + ":" + "{username:" + resmember + ",groupname:" + resgroup + "}"))
+    arranged_group_members = group_members(memberdata)
+
+    jsonify(memberdata)
+
+    return render_template('user_group_management.html', groups=resgroups, memberdata=arranged_group_members)
+
+def group_members(members):
+  """
+  Groups members of the same group together.
+
+  Args:
+    members: A list of dictionaries, where each dictionary contains the following keys:
+      * username: The username of the user.
+      * groupname: The name of the group that the user belongs to.
+
+  Returns:
+    A list of dictionaries, where each dictionary contains the following keys:
+      * groupname: The name of the group that the user belongs to.
+      * members: A list of strings, where each string is the username of a user who belongs to the group.
+  """
+
+  # Create a list comprehension that yields the groups and their members.
+  groups = [member['groupname'] for member in members]
+  members_by_group = {group: [member['username'] for member in members if member['groupname'] == group] for group in set(groups)}
+
+  # Create a dictionary comprehension that yields the grouped members.
+  return {group: members for group, members in members_by_group.items()}
+
+
+
 
 @app.route('/addusertogroup', methods=['GET', 'POST'])
 def addusertogroup():

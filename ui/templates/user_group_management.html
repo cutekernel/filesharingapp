@@ -21,7 +21,12 @@
 		<div class="row">
 			<div class="col-sm-4">
 				<h2>Create a New Group</h2>
-				<form>
+				<div>
+					{% for key in memberdata.keys() %}
+						{{ key }}
+					{% endfor %}
+				</div>
+				<form action="/addusertogroup" method="POST">
 					<div class="form-group">
 						<label for="group-name">Group Name:</label>
 						<input type="text" class="form-control" id="group-name">
@@ -45,37 +50,24 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td>Group A</td>
-							<td>Description of Group A</td>
-							<td>User 1, User 2, User 3</td>
-							<td>
-								<button type="button" class="btn btn-primary btn-sm">Add Members</button>
-								<button type="button" class="btn btn-danger btn-sm">Remove Group</button>
-							</td>
-						</tr>
-						<tr>
-							<td>Group B</td>
-							<td>Description of Group B</td>
-							<td>User 2, User 3, User 4</td>
-							<td>
-								<button type="button" class="btn btn-primary btn-sm">Add Members</button>
-								<button type="button" class="btn btn-danger btn-sm">Remove Group</button>
-							</td>
-						</tr>
-						<tr>
-							<td>Group C</td>
-							<td>Description of Group C</td>
-							<td>User 3, User 4, User 5</td>
-							<td>
-								<button type="button" class="btn btn-primary btn-sm">Add Members</button>
-								<button type="button" class="btn btn-danger btn-sm">Remove Group</button>
-							</td>
-						</tr>
+						{% for group in groups %}
+							<tr>
+							
+								<td>{{ group.GroupName }}</td>
+								<td>{{ group.GroupDescription }}</td>
+								<td>{{ group.description }}</td>
+								<td>{{ group.members }}</td>
+								<td>
+									<button type="button" class="btn btn-primary btn-sm">Add Members</button>
+									<button type="button" class="btn btn-danger btn-sm">Remove Group</button>
+								</td>
+							</tr>
+						{% endfor %}
 					</tbody>
 				</table>
 			</div>
 		</div>
 	</div>
+	
 </body>
 </html>
