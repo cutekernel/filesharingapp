@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>File Search Page</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
+
 <body>
-  {% include 'navigation.html'%}    
+  {% include 'navigation.html'%}
 
   <div class="container mt-5">
     <h1>File Search Page</h1>
@@ -34,7 +36,7 @@
         <select class="form-control" id="category" name="category">
           <option value="">Select a Category</option>
           {% for category in categories %}
-            <option value="{{ category }}">{{ category }}</option>
+          <option value="{{ category }}">{{ category }}</option>
           {% endfor %}
         </select>
       </div>
@@ -44,41 +46,51 @@
         <select class="form-control" id="format" name="format">
           <option value="">Select an extension</option>
           {% for fileformat in fileformats %}
-            <option value="{{ fileformat }}">{{ fileformat }}</option>
+          <option value="{{ fileformat }}">{{ fileformat }}</option>
           {% endfor %}
         </select>
       </div>
-    
+
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
 
-  
-      <h2>Search Results:</h2>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>File Name</th>
-            <th>Size</th>
-            <th>Upload Date</th>
-            <!-- Add more columns as needed -->
-          </tr>
-        </thead>
-        <tbody>
 
-            <tr>
-              <td>{{ search_results }}</td>
+    <h2>Search Results:</h2>
+    <table class="table">
 
-            </tr>
 
-        </tbody>
-      </table>
+      <thead>
+        <tr>
+          {% for attr in search_attributes %}
+          <th>{{attr}}</th>
+
+          <!-- Add more columns as needed -->
+          {% endfor %}
+      </thead>
+      <tbody>
+        {% for file in search_results %}
+        {% for k,v in file.items() %}
+
+        <td>{{ v }}</td>
+        {% endfor %}
+        </tr>
+
+      </tbody>
+
+
+
+      {% endfor %}
+
+
+    </table>
 
 
   </div>
-  {% include 'footer.html'%}    
+  {% include 'footer.html'%}
 
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
+
 </html>

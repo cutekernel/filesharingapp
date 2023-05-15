@@ -12,8 +12,13 @@
         <h1>Remove Group</h1>
         <form action="/removegroup" method="post">
             <div class="mb-3">
-                <label for="group_id" class="form-label">Group Name</label>
-                <input type="text" class="form-control" id="group_id" name="group_id">
+                <label for="groupname">Group Name:</label>
+                <select class="form-control" id="groupname" name="groupname">
+                  <option value="">Select a Group Name</option>
+                  {% for groupname in groupnames %}
+                    <option value="{{ groupname }}">{{ groupname }}</option>
+                  {% endfor %}
+                </select>
             </div>
             <button type="submit" class="btn btn-danger">Remove Group</button>
         </form>

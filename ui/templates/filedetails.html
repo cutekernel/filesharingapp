@@ -40,6 +40,26 @@
     </div>
 
   </div>
+
+  <div class="container">
+
+    <h1>Access Control Rules</h1>
+
+    <div class="card">
+      <div class="card-body">
+        {% for value in ruleids %}
+        <p class="card-text">{{ value }}</p>
+        {% endfor %}
+      </div>
+
+    </div>
+    <br>
+    <div class="btn-group">
+      <a href="/addac" class="btn btn-primary btn-sm">Add Access Control Rule</a>
+      <a href="/removeac" class="btn btn-danger btn-sm">Remove Access Control Rule</a>
+    </div>
+  </div>
+
   {% include 'footer.html'%}    
 
 </body>

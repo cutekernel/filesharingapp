@@ -257,8 +257,8 @@ def getprofile():
         queryuser= db.session.execute(text(query), {"Username": session['username']})
         user = queryuser.fetchone()
         userdata = {key: value for key, value in zip(queryuser.keys(), user)} 
-        return jsonify(str(userdata))
-        # return render_template('profile.html')
+        # return jsonify(str(userdata))
+        return render_template('profile.html', userdata=userdata)
     else:
          redirect('/login')
     
@@ -357,7 +357,13 @@ def updateprofile():
 
 @app.route('/uploadfile', methods=['GET', 'POST'])
 def uploadfile(): 
+    categories = get_categories()
+    tags = get_tags()
     if request.method == 'POST':
+        # add a user to a group
+
+
+
         # Check if a file was provided in the request
         if 'file' not in request.files:
             # flash('No file selected.')
@@ -440,7 +446,7 @@ def uploadfile():
                 INSERT INTO File (FileName, FileSize, UploadDate, LatestVersionID, UserID, FormatID)
                 VALUES (:filename, :file_size, :upload_date, :latest_version_id, :user_id, :format_id)
             """
-            db.session.execute(
+            result = db.session.execute(
                 text(insert_query),
                 {
                     "filename": file.filename,
@@ -454,14 +460,54 @@ def uploadfile():
             )
 
             # the size is in Bytes
-
             db.session.commit()
-        
-        # flash('File uploaded successfully.')
+
+
+            # operations on selected checkboxes
+            selected_checkboxes = request.form.getlist('checkbox')
+            for selection in selected_checkboxes:
+                #get the tagid from the name
+                query = "SELECT TagID FROM Tag WHERE TagName = :tagname"
+                tagid=db.session.execute(text(query), {"fileid": result.lastrowid, "tagname": selection}).fetchone([0])
+                app.logger.debug(tagid)
+                
+                #insert the tag id with fileid
+                query = "INSERT INTO file_has_tag (fileID, tagID) VALUES (:fileid, :tagid) "
+                db.session.execute(text(query), {"fileid": result.lastrowid, "tagid": tagid})
+                db.session.commit()
+
+
+            if 'category' in request.form:
+                categoryname = request.form.get('category')  
+                fileid = result.lastrowid
+                query = "SELECT CategoryID FROM FileCategory WHERE CategoryName = :categoryname "
+                querycat = db.session.execute(text(query), {"categoryname": categoryname})
+                categoryid = querycat.fetchone()[0]
+                # app.logger.debug(categoryid)
+                # insert into the file_has_category table
+                query = "INSERT INTO file_has_filecategory (fileID, categoryID) VALUES (:fileid, :categoryid) "
+                querycat = db.session.execute(text(query), {"fileid": fileid, "categoryid": categoryid})
+                db.session.commit()
+
+
+
         return redirect('/uploadfile')
+    return render_template('upload.html', categories=categories, tags=tags)
     
     # If the request method is GET, show the file upload form
     return render_template('upload.html')
+def get_categories():
+    query = "SELECT CategoryName FROM FileCategory"
+    result = db.session.execute(text(query))
+    categories = [row[0] for row in result.fetchall()]
+    return categories
+
+def get_tags():
+    query = "SELECT TagName FROM Tag"
+    result = db.session.execute(text(query))
+    tags = [row[0] for row in result.fetchall()]
+    return tags
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -480,8 +526,24 @@ def getfiledetails():
     m_filedetails = result.fetchone()
     # store each file in a list with its corresponding attributes
     m_file={key: value for key, value in zip(result.keys(), m_filedetails)}
+
+
+    query = "SELECT ruleID  FROM file_has_ac_rule WHERE FileID = :file_id"
+    result = db.session.execute(text(query), {'file_id': fileid})
+    m_ruleids = [str(t[0]) for t in result.fetchall()]
+    # ruleids = {key: value for key, value in zip(result.keys(), m_ruleids)}
+    allrules = []
+   
+    app.logger.debug( [t[0] for t in m_ruleids])
+    for ruleid in m_ruleids:
+        query = "SELECT RuleName, RuleDescription, AccessLevel  FROM AccessControlRule WHERE RuleID = :ruleid"
+        result = db.session.execute(text(query), {'ruleid': ruleid})
+        ruleid = result.fetchone()        
+        allrules.append(ruleid)
+
+
     # Render the template and pass the file details as a parameter
-    return render_template('filedetails.html', file_details=m_file)
+    return render_template('filedetails.html', file_details=m_file, ruleids=allrules)
     # return render_template('filedetails.html')
 
 
@@ -506,36 +568,9 @@ def search():
         category = request.form.get('category')
         fileformat = request.form.get('format')
 
-        # Perform the search query based on the search criteria
-        # query = """
-        #     SELECT *
-        #     FROM File
-        # """
-
-        # find the fileid by file name
-        query = """
-            SELECT FileID, , f.FileSize, f.UploadDate
-            FROM File
-            WHERE FileName = :name;
-        """
-        
-        # find the file category  based on fileid
-        query = "SELECT categoryID FROM file_has_filecategory WHERE FileID = :fileid " 
-        # find the file size based on id
-        query = "SELECT "
-        # find find format based on fileid
-
-        # Perform the search query based on the search criteria
-        # query = """
-        #     SELECT f.FileName, f.FileSize, f.UploadDate
-        #     FROM File AS f
-        #     JOIN FileFormat AS ff ON f.FormatID = ff.FormatID
-        #     JOIN file_has_filecategory AS fc ON f.CategoryID = fc.categoryID
-        #     WHERE 1=1
-        # """
 
         query = """
-                SELECT f.FileName, f.FileSize, f.UploadDate
+                SELECT f.FileID, f.FileName, f.FileSize, f.UploadDate, f.UserID, f.FormatID 
                 FROM File AS f
                 JOIN FileFormat AS ff ON f.FormatID = ff.FormatID
                 JOIN file_has_filecategory AS fc ON f.FileID = fc.FileID
@@ -569,11 +604,26 @@ def search():
 
         # Execute the query and fetch results
         results =  db.session.execute(text(query), params)  # Replace with your database library
-        resfile= results.fetchall()
+        resfiles= results.fetchall()
+        allfiles=[]
+        search_attributes = ["fileid", "filename", "filesize", "uploaddate", "userid", "formatid"]
+        for resfile in resfiles:
+            m_file = {
+                       "fileid": resfile[0],
+                       "filename": resfile[1],
+                       "filesize": resfile[2],
+                       "uploaddate": resfile[3],
+                       "userid": resfile[4],
+                       "formatid": resfile[5]
+                           }
+            allfiles.append(m_file)
+
+            app.logger.debug(m_file)
+
         # Sort the results by upload date (assuming it's a datetime column)
         # results.sort(key=lambda x: x.upload_date)
 
-        return render_template('search.html', categories=get_categories(), fileformats=get_fileformats(), search_results=resfile)
+        return render_template('search.html', categories=get_categories(), fileformats=get_fileformats(), search_results=allfiles, search_attributes=search_attributes)
 
     # If the request method is GET or no search query is provided, render the search page
     return render_template('search.html', categories=get_categories(), fileformats=get_fileformats())
@@ -615,7 +665,7 @@ def manageusers():
     resmembers = querymembers.fetchall()
     memberdata = []
     for member in resmembers:
-        app.logger.debug(str(resmembers[0]))
+        # app.logger.debug(str(resmembers[0]))
         # get user information
         subquery = "SELECT Username from User WHERE UserID = :userid"
         querymember = db.session.execute(text(subquery), {"userid": member[0]})
@@ -655,11 +705,6 @@ def group_members(members):
   return {group: members for group, members in members_by_group.items()}
 
 
-@app.route('/removegroup', methods=['GET', 'POST'])
-def removegroup():
-    # add a user to a group
-    pass
-    return render_template('removegroup.html')
 
 
 @app.route('/addmember', methods=['GET', 'POST'])
@@ -739,10 +784,49 @@ def removemember():
 @app.route('/creategroup', methods=['GET', 'POST'])
 def creategroup():
     # add a user to a group
-    if request.method == 'POST' and 'username':
-        username = request.form.get('username')
+    if request.method == 'POST'  and 'groupdescription' in request.form and 'groupname' in request.form:
+        groupname = request.form.get('groupname')
+        groupdescription = request.form.get('groupdescription')
 
+        query = """
+            INSERT INTO UserGroup (GroupName, GroupDescription)
+            VALUES (:groupname, :groupdescription)
+        """
+        app.logger.debug(groupname)
+        app.logger.debug(groupdescription)
+        db.session.execute(
+            text(query),
+            {
+                'groupname': groupname,
+                'groupdescription': groupdescription
+            }
+        )
+        db.session.commit()
     return redirect('/manageusers')
+
+
+@app.route('/removegroup', methods=['GET', 'POST'])
+def removegroup():
+    groupnames = get_groupnames()
+
+    if request.method == 'POST'  and 'groupname' in request.form:
+        groupname = request.form.get('groupname')
+
+        query = """
+            DELETE FROM UserGroup
+            WHERE GroupName = :groupname
+        """
+        app.logger.debug(groupname)
+        db.session.execute(
+            text(query),
+            {
+                'groupname': groupname,
+            }
+        )
+        db.session.commit()
+    return render_template('removegroup.html', groupnames=groupnames)
+
+
 
 
 @app.route('/addtags', methods=['GET', 'POST'])
@@ -757,25 +841,6 @@ def removetags():
     pass        
     return render_template('tag_management.html')
 
-
-
-@app.route("/displaydowntown", methods=["POST", "GET"])
-def displaydowntown():
-
-    # Construct the SQL query string to retrieve the desired data
-    # query = "SELECT DISTINCT c.customer_name, c.customer_city FROM customer c JOIN depositor d ON c.customer_name = d.customer_name JOIN account a ON d.account_number = a.account_number JOIN branch b ON a.branch_name = b.branch_name WHERE b.branch_name = 'Downtown'"
-    
-    # # Execute the query and retrieve the results
-    # result = db.session.execute(text(query))
-
-    # # If rows are returned, format the data as a list of dictionaries and return it
-    # if result.rowcount > 0:
-    #     rows = result.fetchall()
-    #     data = [{'name': row[0], 'city': row[1], 'branch': 'Downtown'} for row in rows]
-    #     return jsonify(data)
-    # else:
-    #     return jsonify({'message': 'No matching data found'})
-    return jsonify({'message': 'success path'})
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=5000)
