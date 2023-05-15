@@ -464,7 +464,9 @@ def uploadfile():
 
 
             # operations on selected checkboxes
+            #TODO: it does not add relationship to the file_has_tag table
             selected_checkboxes = request.form.getlist('checkbox')
+            app.logger.debug(selected_checkboxes)
             for selection in selected_checkboxes:
                 #get the tagid from the name
                 query = "SELECT TagID FROM Tag WHERE TagName = :tagname"
@@ -617,6 +619,25 @@ def search():
                        "formatid": resfile[5]
                            }
             allfiles.append(m_file)
+
+
+            # access control
+            query = """
+            SELECT CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM file_has_ac_rule AS far
+                    INNER JOIN AccessControlRule AS acr ON far.ruleID = acr.RuleID
+                    INNER JOIN File AS f ON far.fileID = f.FileID
+                    WHERE acr.RuleName = :rulename
+                    AND f.FileName = :filename 
+                    AND acr.UserID = :userid 
+                )
+                THEN 'Access allowed'
+                ELSE 'Access denied'
+                END AS AccessStatus;
+            """
+            acquery = db.session.execute(text(query), {"rulename": rulename, "filename": filename, "userid": userid})
 
             app.logger.debug(m_file)
 
