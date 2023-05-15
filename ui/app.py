@@ -692,10 +692,7 @@ def addmember():
         db.session.commit()
     return render_template('addmember.html', groupnames=groupnames, usernames=usernames)
 def get_groupnames():
-    # Query the database to retrieve the list of categories
-    # You can customize this part to retrieve the categories based on your database schema and criteria
 
-    # Example: Retrieve categories from a Categories table
     query = "SELECT GroupName FROM UserGroup"
     result = db.session.execute(text(query))
     groupnames = [row[0] for row in result.fetchall()]
@@ -703,10 +700,7 @@ def get_groupnames():
     return groupnames
 
 def get_usernames():
-    # Query the database to retrieve the list of categories
-    # You can customize this part to retrieve the categories based on your database schema and criteria
 
-    # Example: Retrieve categories from a Categories table
     query = "SELECT Username FROM User"
     result = db.session.execute(text(query))
     usernames = [row[0] for row in result.fetchall()]
@@ -715,14 +709,39 @@ def get_usernames():
 
 @app.route('/removemember', methods=['GET', 'POST'])
 def removemember():
-    # add a user to a group
-    pass
-    return render_template('removemember.html')
+    groupnames = get_groupnames()
+    usernames = get_usernames()
+    if request.method == 'POST' and 'username' in request.form and 'groupname' in request.form:
+        # add a user to a group
+        username = request.form.get('username')
+        groupname = request.form.get('groupname')
+        # query the userid
+        query = "SELECT UserID from User WHERE Username = :username"
+        userid = db.session.execute(text(query), {'username':username}).fetchone()[0]
+        # query the groupid based on the groupName
+        query = "SELECT GroupID from UserGroup WHERE GroupName = :groupname"
+        groupid = db.session.execute(text(query), {'groupname':groupname}).fetchone()[0]
 
-@app.route('/removeusertogroup', methods=['GET', 'POST'])
-def removeusertogroup():
+        query = """
+            DELETE FROM user_belongs_userGroup WHERE UserID = :userid AND groupID = :groupid
+        """
+        
+        db.session.execute(
+            text(query),
+            {
+                'userid': userid,
+                'groupid': groupid
+            }
+        )
+        db.session.commit()
+    return render_template('removemember.html', groupnames=groupnames, usernames=usernames)
+
+@app.route('/creategroup', methods=['GET', 'POST'])
+def creategroup():
     # add a user to a group
-    pass
+    if request.method == 'POST' and 'username':
+        username = request.form.get('username')
+
     return redirect('/manageusers')
 
 
