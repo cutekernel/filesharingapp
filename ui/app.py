@@ -215,10 +215,10 @@ def register():
         if insertuser.fetchone():
             # if the inserted user already exist, redirect to login 
             # return jsonify({'message': 'user successfully inserted. Please login now'})
-            return render_template('login.html', loggedin = session['loggedin'])
+            return render_template('login.html')
         
         else:
-            return render_template('login.html', loggedin = session['loggedin'])
+            return render_template('login.html')
 
     return render_template('register.html')
 
