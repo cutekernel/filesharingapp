@@ -37,6 +37,16 @@
 					</div>
 					<button type="submit" class="btn btn-primary">Create Group</button>
 				</form>
+				<div>
+					<hr>
+					<div class="btn-group">
+					  <a href="/addmember" class="btn btn-primary btn-sm">Add Member</a>
+					  <a href="/removemember" class="btn btn-danger btn-sm">Remove Member</a>
+					</div>
+					<hr>
+					<a href="/removegroup" class="btn btn-danger btn-sm">Remove Group</a>									
+				</div>
+	
 			</div>
 			<div class="col-sm-8">
 				<h2>Manage Existing Groups</h2>
@@ -48,28 +58,25 @@
 						</tr>
 					</thead>
 					<tbody>
-
 						{% for key, value in memberdata.items()  %}
-								<tr>
-									<td> {{ key }} </td>
-									<td>
-								{% for v in value  %}
-									 {{ v }} 
-								{% endfor %}
-							</td>
+							<tr>
+								<td> {{ key }} </td>
 								<td>
-									<button type="button" class="btn btn-primary btn-sm">Add Members</button>
-									<button type="button" class="btn btn-danger btn-sm">Remove Group</button>
+									{% for v in value  %}
+										{{ v }} 
+									{% endfor %}
+								</td>
+								<td>
+
 								</td>
 							</tr>
-
-
 						{% endfor %}
 					</tbody>
 				</table>
 			</div>
 		</div>
 	</div>
+	{% include 'footer.html'%}    
 	
 </body>
 </html>

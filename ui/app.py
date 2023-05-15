@@ -614,7 +614,6 @@ def manageusers():
     querymembers = db.session.execute(text(query))
     resmembers = querymembers.fetchall()
     memberdata = []
-    cnt=0
     for member in resmembers:
         app.logger.debug(str(resmembers[0]))
         # get user information
@@ -626,16 +625,7 @@ def manageusers():
         querygroup = db.session.execute(text(subgquery), {"UserGroup": member[1]})
         resgroup = querygroup.fetchone()[0] 
         memberdata.append({"username": resmember, "groupname": resgroup})
-        memberdata.append({"username": resmember, "groupname": resgroup})
         group_id = member[1]
-        # if group_id not in memberdata:
-        #     memberdata[group_id] = []
-
-        # memberdata[group_id].append({"username": resmember[0], "groupname": resgroup[0]})
-
-        cnt = cnt+1
-        
-        # memberdata.append(str("member" + str(cnt) + ":" + "{username:" + resmember + ",groupname:" + resgroup + "}"))
     arranged_group_members = group_members(memberdata)
 
     jsonify(memberdata)
@@ -665,13 +655,63 @@ def group_members(members):
   return {group: members for group, members in members_by_group.items()}
 
 
-
-
-@app.route('/addusertogroup', methods=['GET', 'POST'])
-def addusertogroup():
+@app.route('/removegroup', methods=['GET', 'POST'])
+def removegroup():
     # add a user to a group
     pass
-    return render_template('user_group_management.html')
+    return render_template('removegroup.html')
+
+
+@app.route('/addmember', methods=['GET', 'POST'])
+def addmember():
+    groupnames = get_groupnames()
+    if request.method == 'POST' and 'username' in request.form and 'groupname' in request.form:
+        # add a user to a group
+        username = request.form.get('username')
+        groupname = request.form.get('groupname')
+        # query the userid
+        query = "SELECT UserID from User WHERE Username = :username"
+        userid = db.session.execute(text(query), {'username':username}).fetchone()[0]
+        # query the groupid based on the groupName
+        query = "SELECT GroupID from UserGroup WHERE GroupName = :groupname"
+        groupid = db.session.execute(text(query), {'groupname':groupname}).fetchone()[0]
+
+        query = """
+            INSERT INTO user_belongs_userGroup (UserID, groupID)
+            VALUES (:userid, :groupid)
+        """
+        
+        db.session.execute(
+            text(query),
+            {
+                'userid': userid,
+                'groupid': groupid
+            }
+        )
+        db.session.commit()
+    return render_template('addmember.html', groupnames=groupnames)
+def get_groupnames():
+    # Query the database to retrieve the list of categories
+    # You can customize this part to retrieve the categories based on your database schema and criteria
+
+    # Example: Retrieve categories from a Categories table
+    query = "SELECT GroupName FROM UserGroup"
+    result = db.session.execute(text(query))
+    groupnames = [row[0] for row in result.fetchall()]
+
+    return groupnames
+
+@app.route('/removemember', methods=['GET', 'POST'])
+def removemember():
+    # add a user to a group
+    pass
+    return render_template('removemember.html')
+
+@app.route('/removeusertogroup', methods=['GET', 'POST'])
+def removeusertogroup():
+    # add a user to a group
+    pass
+    return redirect('/manageusers')
 
 
 @app.route('/addtags', methods=['GET', 'POST'])
