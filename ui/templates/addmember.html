@@ -12,8 +12,15 @@
         <h1>Add User to Group</h1>
         <form action="/addmember" method="post">
             <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" name="username">
+                <div class="mb-3">
+                    <label for="username">Username:</label>
+                    <select class="form-control" id="username" name="username">
+                      <option value="">Select a user</option>
+                      {% for username in usernames %}
+                        <option value="{{ username }}">{{ username }}</option>
+                      {% endfor %}
+                    </select>
+                </div>
             </div>
             <div class="mb-3">
                 <label for="groupname">Group Name:</label>

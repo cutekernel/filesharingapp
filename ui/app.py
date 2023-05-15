@@ -665,6 +665,7 @@ def removegroup():
 @app.route('/addmember', methods=['GET', 'POST'])
 def addmember():
     groupnames = get_groupnames()
+    usernames = get_usernames()
     if request.method == 'POST' and 'username' in request.form and 'groupname' in request.form:
         # add a user to a group
         username = request.form.get('username')
@@ -689,7 +690,7 @@ def addmember():
             }
         )
         db.session.commit()
-    return render_template('addmember.html', groupnames=groupnames)
+    return render_template('addmember.html', groupnames=groupnames, usernames=usernames)
 def get_groupnames():
     # Query the database to retrieve the list of categories
     # You can customize this part to retrieve the categories based on your database schema and criteria
@@ -700,6 +701,17 @@ def get_groupnames():
     groupnames = [row[0] for row in result.fetchall()]
 
     return groupnames
+
+def get_usernames():
+    # Query the database to retrieve the list of categories
+    # You can customize this part to retrieve the categories based on your database schema and criteria
+
+    # Example: Retrieve categories from a Categories table
+    query = "SELECT Username FROM User"
+    result = db.session.execute(text(query))
+    usernames = [row[0] for row in result.fetchall()]
+
+    return usernames
 
 @app.route('/removemember', methods=['GET', 'POST'])
 def removemember():
