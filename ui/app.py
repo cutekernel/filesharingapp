@@ -213,7 +213,7 @@ def register():
         query = "SELECT * from User WHERE Username = :username"
         insertuser = db.session.execute(text(query), {'username': username})
         if insertuser.fetchone():
-            # need to redirect to login
+            # if the inserted user already exist, redirect to login 
             # return jsonify({'message': 'user successfully inserted. Please login now'})
             return render_template('login.html', loggedin = session['loggedin'])
         
