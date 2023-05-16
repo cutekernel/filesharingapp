@@ -624,23 +624,23 @@ def search():
             allfiles.append(m_file)
 
 
-            # access control
-            query = """
-            SELECT CASE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM file_has_ac_rule AS far
-                    INNER JOIN AccessControlRule AS acr ON far.ruleID = acr.RuleID
-                    INNER JOIN File AS f ON far.fileID = f.FileID
-                    WHERE acr.RuleName = :rulename
-                    AND f.FileName = :filename 
-                    AND acr.UserID = :userid 
-                )
-                THEN 'Access allowed'
-                ELSE 'Access denied'
-                END AS AccessStatus;
-            """
-            acquery = db.session.execute(text(query), {"rulename": rulename, "filename": filename, "userid": userid})
+            # # access control
+            # query = """
+            # SELECT CASE
+            #     WHEN EXISTS (
+            #         SELECT 1
+            #         FROM file_has_ac_rule AS far
+            #         INNER JOIN AccessControlRule AS acr ON far.ruleID = acr.RuleID
+            #         INNER JOIN File AS f ON far.fileID = f.FileID
+            #         WHERE acr.RuleName = :rulename
+            #         AND f.FileName = :filename 
+            #         AND acr.UserID = :userid 
+            #     )
+            #     THEN 'Access allowed'
+            #     ELSE 'Access denied'
+            #     END AS AccessStatus;
+            # """
+            # acquery = db.session.execute(text(query), {"rulename": rulename, "filename": filename, "userid": userid})
 
             app.logger.debug(m_file)
 
@@ -853,17 +853,17 @@ def removegroup():
 
 
 
-@app.route('/addtags', methods=['GET', 'POST'])
-def addtags():
-    # add tags to a file
-    pass  
-    return render_template('tag_management.html')
+# @app.route('/addtags', methods=['GET', 'POST'])
+# def addtags():
+#     # add tags to a file
+#     pass  
+#     return render_template('tag_management.html')
 
 
-@app.route('/removetags', methods=['GET', 'POST'])
-def removetags():
-    pass        
-    return render_template('tag_management.html')
+# @app.route('/removetags', methods=['GET', 'POST'])
+# def removetags():
+#     pass        
+#     return render_template('tag_management.html')
 
 
 @app.route('/addac', methods=['GET', 'POST'])
