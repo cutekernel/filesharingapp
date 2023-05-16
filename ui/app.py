@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, url_for, render_template, request, render_template, session, redirect
 from sqlalchemy import text
 from flask_sqlalchemy import SQLAlchemy
-import os, hashlib
+import os, hashlib, logging
 from datetime import datetime
 from sqlalchemy.exc import *
 
@@ -28,6 +28,17 @@ db.init_app(app)
 # Global variables:
 UPLOAD_FOLDER = '/home'
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'xlsx', 'pptx', 'jpg', 'png', 'mp3', 'txt', 'psd', 'py'}
+
+# Set up logging
+logging.basicConfig(filename='requests.log', level=logging.INFO)
+logger = app.logger
+
+@app.before_request
+def log_request_info():
+    logger.info('Request URL: %s', request.url)
+    logger.info('Request method: %s', request.method)
+    logger.info('Request headers: %s', request.headers)
+    logger.info('Request data: %s', request.get_data(as_text=True))
 
 # Define the login route
 @app.route('/', methods=["POST", "GET"])
@@ -800,7 +811,7 @@ def addgroup():
             }
         )
         db.session.commit()
-        alert['operation'] = insertion
+        alert['operation'] = 'insertion'
         alert['groupname'] = groupname
         alert['groupdescription'] = groupdescription
         return render_template('addgroup.html', alert=alert )
