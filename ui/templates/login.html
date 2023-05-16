@@ -10,9 +10,7 @@
    {% include 'navigation.html'%}    
     <div class="container">
         <h1>Login to File Sharing App</h1>
-        {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
+       {% include 'alert.html'%}    
         <form method="post" action="{{url_for('login')}}">
             <div class="form-group">
                 <label for="username">Username:</label>

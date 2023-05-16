@@ -44,13 +44,14 @@ def login():
         query = "SELECT * FROM User WHERE Username = :Username AND Password = :Password"    
         queryuser= db.session.execute(text(query), {"Username": username, "Password": password})
         user = queryuser.fetchone()
-        userdata = {key: value for key, value in zip(queryuser.keys(), user)}
+        
 
 
         # Close the database connection
         # db.session.commit()
         # If the user is found, store their information in a session and redirect to the dashboard
         if user:
+            userdata = {key: value for key, value in zip(queryuser.keys(), user)}
             session['loggedin'] = True
             session['username'] = username
             session['UserData'] = userdata
@@ -114,8 +115,8 @@ def login():
         # If the user is not found, show an error message
 
         else:
-            error = 'Invalid username or password. Please try again.'
-            return render_template('login.html', error=error)
+            alert = 'Invalid username or password. Please try again.'
+            return render_template('login.html', alert=alert)
     # If the request method is GET, show the login form
     else:
         return render_template('login.html')
@@ -305,6 +306,7 @@ def deleteprofile(username=None):
 
 @app.route('/updateprofile', methods=['GET', 'POST'])
 def updateprofile():
+    notification=''
     if request.method == 'POST':
         if session['username']:
             # Retrieve the updated profile information from the form
@@ -336,34 +338,39 @@ def updateprofile():
             # Remove the trailing comma from the query
             query = query.rstrip(',')
             
-            # Append the WHERE clause to update the specific user
-            query += " WHERE UserID = :userid"
-            params['userid'] = session['UserID']
+
             
-            # Execute the SQL query to update the user profile information
-            db.session.execute(text(query), params)
-            db.session.commit()
-            session['username'] = username
-            # Redirect to the profile page
-            return redirect('/dashboard')
+            if bool(params):
+                # Append the WHERE clause to update the specific user BY DEFAULT
+                query += " WHERE UserID = :userid"
+                params['userid'] = session['UserID']                
+
+                # Execute the SQL query to update the user profile information
+                db.session.execute(text(query), params)
+                db.session.commit()
+                session['username'] = username
+
+                del params['userid']
+                alert = 'Information updated is: ' + str(params)
+                return render_template('profile.html', username=session['username'], alert=alert)
+            else:
+                alert = 'Please enter information to update. '
+                return render_template('profile.html', username=session['username'], alert=alert)                
         else:
             # Redirect to the profile page
             return redirect('/updateprofile')
     
     # If the request method is GET, show the profile update form
-    return render_template('profile.html')
+    return render_template('profile.html', username=session['username'])
 
 
 
 @app.route('/uploadfile', methods=['GET', 'POST'])
 def uploadfile(): 
+    alert = {}
     categories = get_categories()
     tags = get_tags()
     if request.method == 'POST':
-        # add a user to a group
-
-
-
         # Check if a file was provided in the request
         if 'file' not in request.files:
             # flash('No file selected.')
@@ -398,7 +405,6 @@ def uploadfile():
         
         if format_id is None:
             # The file format is not supported, handle accordingly
-            # flash('Unsupported file format.')
             return redirect(request.url)
         
         format_id = format_id[0]  # Extract the format ID from the result
@@ -461,22 +467,25 @@ def uploadfile():
 
             # the size is in Bytes
             db.session.commit()
+            alert['operation'] = 'insertion'
+            alert['inserted_data'] = { "filename": file.filename, "file_size": os.path.getsize(file_path), "upload_date": datetime.now(), "latest_version_id": version_id, "user_id": session['UserID'],  "format_id": format_id  }
 
 
             # operations on selected checkboxes
             #TODO: it does not add relationship to the file_has_tag table
-            selected_checkboxes = request.form.getlist('checkbox')
+            selected_checkboxes = request.form.getlist('tags')
             app.logger.debug(selected_checkboxes)
             for selection in selected_checkboxes:
                 #get the tagid from the name
                 query = "SELECT TagID FROM Tag WHERE TagName = :tagname"
-                tagid=db.session.execute(text(query), {"fileid": result.lastrowid, "tagname": selection}).fetchone([0])
+                tagid=db.session.execute(text(query), {"fileid": result.lastrowid, "tagname": selection}).fetchone()[0]
                 app.logger.debug(tagid)
                 
                 #insert the tag id with fileid
                 query = "INSERT INTO file_has_tag (fileID, tagID) VALUES (:fileid, :tagid) "
                 db.session.execute(text(query), {"fileid": result.lastrowid, "tagid": tagid})
                 db.session.commit()
+            alert['tags'] = selected_checkboxes
 
 
             if 'category' in request.form:
@@ -490,10 +499,13 @@ def uploadfile():
                 query = "INSERT INTO file_has_filecategory (fileID, categoryID) VALUES (:fileid, :categoryid) "
                 querycat = db.session.execute(text(query), {"fileid": fileid, "categoryid": categoryid})
                 db.session.commit()
+                alert['category'] = categoryname
 
 
 
-        return redirect('/uploadfile')
+
+        
+        return render_template('upload.html', categories=categories, tags=tags, alert=alert)
     return render_template('upload.html', categories=categories, tags=tags)
     
     # If the request method is GET, show the file upload form
@@ -612,6 +624,7 @@ def search():
         resfiles= results.fetchall()
         allfiles=[]
         search_attributes = ["fileid", "filename", "filesize", "uploaddate", "userid", "formatid"]
+        #TODO: query username and format ID so that its username and extension name
         for resfile in resfiles:
             m_file = {
                        "fileid": resfile[0],

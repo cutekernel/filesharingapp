@@ -11,6 +11,7 @@
     <h1>Update Profile</h1>
     <h4>You are logged in as {{username}}</h4>
     <hr>
+    {% include 'alert.html'%}    
     
     <form action="{{ url_for('updateprofile') }}" method="POST">
 
