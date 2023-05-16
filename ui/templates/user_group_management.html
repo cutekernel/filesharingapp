@@ -18,36 +18,10 @@
 
 	<div class="container">
 		<h1>User Group Management</h1>
-		<div class="row">
-			<div class="col-sm-4">
-				<h2>Create a New Group</h2>
-				<div>
-					
+        {% include 'alert.html'%}    
 
-						
-				</div>
-				<form action="/creategroup" method="POST">
-					<div class="form-group">
-						<label for="groupname">Group Name:</label>
-						<input type="text" class="form-control" id="groupname">
-					</div>
-					<div class="form-group">
-						<label for="groupdescription">Group Description:</label>
-						<textarea class="form-control" id="groupdescription" rows="3"></textarea>
-					</div>
-					<button type="submit" class="btn btn-primary">Create Group</button>
-				</form>
-				<div>
-					<hr>
-					<div class="btn-group">
-					  <a href="/addmember" class="btn btn-primary btn-sm">Add Member</a>
-					  <a href="/removemember" class="btn btn-danger btn-sm">Remove Member</a>
-					</div>
-					<hr>
-					<a href="/removegroup" class="btn btn-danger btn-sm">Remove Group</a>									
-				</div>
-	
-			</div>
+		<div class="row">
+
 			<div class="col-sm-8">
 				<h2>Manage Existing Groups</h2>
 				<table class="table">
@@ -74,6 +48,31 @@
 					</tbody>
 				</table>
 			</div>
+			<div class="col-sm-4">
+					
+	
+				<div>
+				
+					<div class="btn-group">
+						<a href="/addgroup" class="btn btn-primary btn-sm">Add Group</a>
+						<a href="/removegroup" class="btn btn-danger btn-sm">Remove Group</a>
+					</div>
+					<hr>
+													
+				</div>
+
+
+				<div>
+					
+					<div class="btn-group">
+					  <a href="/addmember" class="btn btn-primary btn-sm">Add Member</a>
+					  <a href="/removemember" class="btn btn-danger btn-sm">Remove Member</a>
+					</div>
+				
+													
+				</div>
+	
+			</div>			
 		</div>
 	</div>
 	{% include 'footer.html'%}    

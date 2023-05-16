@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, request, render_template, session, redirect
+from flask import Flask, request, jsonify, url_for, render_template, request, render_template, session, redirect
 from sqlalchemy import text
 from flask_sqlalchemy import SQLAlchemy
 import os, hashlib
@@ -693,8 +693,6 @@ def manageusers():
     query = " SELECT * FROM UserGroup"
     querygroups = db.session.execute(text(query))
     resgroups = querygroups.fetchall()
-    # allgroups=[]
-    # rgoups={key: value for key, value in zip(querygroups.keys(), resgroups)}
 
     # find group members
     query= "SELECT * FROM user_belongs_userGroup "
@@ -748,6 +746,7 @@ def group_members(members):
 def addmember():
     groupnames = get_groupnames()
     usernames = get_usernames()
+    alert = {}
     if request.method == 'POST' and 'username' in request.form and 'groupname' in request.form:
         # add a user to a group
         username = request.form.get('username')
@@ -755,9 +754,11 @@ def addmember():
         # query the userid
         query = "SELECT UserID from User WHERE Username = :username"
         userid = db.session.execute(text(query), {'username':username}).fetchone()[0]
+        alert['userid'] = userid
         # query the groupid based on the groupName
         query = "SELECT GroupID from UserGroup WHERE GroupName = :groupname"
         groupid = db.session.execute(text(query), {'groupname':groupname}).fetchone()[0]
+        alert ['groupid'] = groupid
 
         query = """
             INSERT INTO user_belongs_userGroup (UserID, groupID)
@@ -772,6 +773,8 @@ def addmember():
             }
         )
         db.session.commit()
+        
+        return render_template('addmember.html', groupnames=groupnames, usernames=usernames, alert=alert)
     return render_template('addmember.html', groupnames=groupnames, usernames=usernames)
 def get_groupnames():
 
@@ -791,6 +794,7 @@ def get_usernames():
 
 @app.route('/removemember', methods=['GET', 'POST'])
 def removemember():
+    alert = {}
     groupnames = get_groupnames()
     usernames = get_usernames()
     if request.method == 'POST' and 'username' in request.form and 'groupname' in request.form:
@@ -800,9 +804,11 @@ def removemember():
         # query the userid
         query = "SELECT UserID from User WHERE Username = :username"
         userid = db.session.execute(text(query), {'username':username}).fetchone()[0]
+        alert['userid'] = userid
         # query the groupid based on the groupName
         query = "SELECT GroupID from UserGroup WHERE GroupName = :groupname"
         groupid = db.session.execute(text(query), {'groupname':groupname}).fetchone()[0]
+        alert['groupid'] = groupid
 
         query = """
             DELETE FROM user_belongs_userGroup WHERE UserID = :userid AND groupID = :groupid
@@ -816,11 +822,15 @@ def removemember():
             }
         )
         db.session.commit()
+        return render_template('removemember.html', groupnames=groupnames, usernames=usernames, alert=alert)
     return render_template('removemember.html', groupnames=groupnames, usernames=usernames)
 
-@app.route('/creategroup', methods=['GET', 'POST'])
-def creategroup():
-    # add a user to a group
+@app.route('/addgroup', methods=['GET', 'POST'])
+def addgroup():
+    # add  a group
+    alert = {}
+    
+
     if request.method == 'POST'  and 'groupdescription' in request.form and 'groupname' in request.form:
         groupname = request.form.get('groupname')
         groupdescription = request.form.get('groupdescription')
@@ -839,7 +849,11 @@ def creategroup():
             }
         )
         db.session.commit()
-    return redirect('/manageusers')
+        alert['operation'] = insertion
+        alert['groupname'] = groupname
+        alert['groupdescription'] = groupdescription
+        return render_template('addgroup.html', alert=alert )
+    return render_template('addgroup.html' )
 
 
 @app.route('/removegroup', methods=['GET', 'POST'])
