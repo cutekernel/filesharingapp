@@ -523,6 +523,9 @@ def getfiledetails():
     # display the file details of the latest version
     # Retrieve the file details of a specific file using SQL statements
     fileid = request.args.get('file_id')
+    session['FileID'] = fileid
+    # app.logger.debug(session['FileID'])
+
     query = "SELECT * FROM File WHERE FileID = :file_id AND UserID = :userid"
     result = db.session.execute(text(query), {'file_id': fileid, 'userid': session['UserID']})
     m_filedetails = result.fetchone()
@@ -536,7 +539,7 @@ def getfiledetails():
     # ruleids = {key: value for key, value in zip(result.keys(), m_ruleids)}
     allrules = []
    
-    app.logger.debug( [t[0] for t in m_ruleids])
+    # app.logger.debug( [t[0] for t in m_ruleids])
     for ruleid in m_ruleids:
         query = "SELECT RuleName, RuleDescription, AccessLevel  FROM AccessControlRule WHERE RuleID = :ruleid"
         result = db.session.execute(text(query), {'ruleid': ruleid})
@@ -862,6 +865,37 @@ def removetags():
     pass        
     return render_template('tag_management.html')
 
+
+@app.route('/addac', methods=['GET', 'POST'])
+def addac():
+    acrules = get_acrules()
+    if request.method == 'POST' and 'acrule' in request.form:
+        acrule = request.form.get('acrule')
+        query = "SELECT RuleID from AccessControlRule WHERE RuleName = :rulename"
+        acruleid = db.session.execute(text(query), {'rulename':acrule}).fetchone()[0]
+
+        query = """
+            INSERT INTO file_has_ac_rule (fileID, ruleID) 
+            VALUES (:fileid, :ruleid)
+        """
+        
+        db.session.execute(
+            text(query),
+            {
+                'fileid': session['FileID'],
+                'ruleid': acruleid
+            }
+        )
+        db.session.commit()
+    return render_template('addac.html', acrules=acrules)
+
+def get_acrules():
+
+    query = "SELECT RuleName FROM AccessControlRule"
+    result = db.session.execute(text(query))
+    acrules = [row[0] for row in result.fetchall()]
+
+    return acrules
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=5000)

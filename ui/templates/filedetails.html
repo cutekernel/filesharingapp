@@ -29,7 +29,6 @@
   <div class="container">
 
     <h1>File Details</h1>
-
     <div class="card">
       <div class="card-body">
         {% for attr,value in file_details.items() %}
@@ -54,10 +53,13 @@
 
     </div>
     <br>
-    <div class="btn-group">
-      <a href="/addac" class="btn btn-primary btn-sm">Add Access Control Rule</a>
-      <a href="/removeac" class="btn btn-danger btn-sm">Remove Access Control Rule</a>
-    </div>
+<form method="GET" action="/addac">
+    <button type="submit" class="btn btn-primary btn-sm">Add Access Control Rule</button>
+</form>
+
+<form method="GET" action="/removeac">
+    <button type="submit" class="btn btn-danger btn-sm">Remove Access Control Rule</button>
+</form>
   </div>
 
   {% include 'footer.html'%}    
