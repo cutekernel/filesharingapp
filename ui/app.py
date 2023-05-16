@@ -39,16 +39,13 @@ def login():
         password = request.form['password']
 
         # Execute the SQL query to retrieve the user with the given username and password
-        # query = "INSERT INTO customer (customer_name, customer_city, customer_street) VALUES (:customer_name, :customer_city, :customer_street)"
-        # db.session.execute(text(query), {"customer_name": customer_name, "customer_city": customer_city, "customer_street": customer_street})     
         query = "SELECT * FROM User WHERE Username = :Username AND Password = :Password"    
         queryuser= db.session.execute(text(query), {"Username": username, "Password": password})
         user = queryuser.fetchone()
         
 
 
-        # Close the database connection
-        # db.session.commit()
+
         # If the user is found, store their information in a session and redirect to the dashboard
         if user:
             userdata = {key: value for key, value in zip(queryuser.keys(), user)}
@@ -86,12 +83,6 @@ def login():
                  allusernotifs.append(usernotifs)
 
 
-            # return jsonify({'message': str(notifs) + str(files) + str(userdata['Username']),
-            # return jsonify({'Username': str(userdata['Username']),
-            #                 'notifications': str(allusernotifs) ,
-            #                 'files:': str(userfiles)
-            #                 } )
-
             return render_template('dashboard.html',
                                    username=str(userdata['Username']), 
                                    email = str(userdata['Email']), 
@@ -102,17 +93,7 @@ def login():
                                    notifications =allusernotifs
                                    )  
 
-            # return render_template('dashboard.html',
-            #                        username=str(userdata['Username']), 
-            #                        email = str(userdata['Email']), 
-            #                        registration_date = str(userdata['RegistrationDate']), 
-            #                        last_login_date = str(userdata['LastLoginDate']), 
-            #                        user_profile = str(userdata['UserProfile']),
-            #                        files = str(userfiles),
-            #                        notifications =str(usernotifs)
-            #                        )  
-            # return redirect('/dashboard')
-        # If the user is not found, show an error message
+
 
         else:
             alert = 'Invalid username or password. Please try again.'
@@ -284,21 +265,6 @@ def deleteprofile(username=None):
             db.session.execute(text(query), {"userid": session['UserID']})
             db.session.commit()
 
-        # # delete user from user table
-        # query = "DELETE * FROM User WHERE UserID = :userid"
-        
-        # #delete files with that userid
-        # query = "DELETE * FROM File WHERE UserID = :userid"
-
-        # #delete notifications associated with the userid
-        # query = "DELETE * FROM Notification WHERE UserID = :userid"
-        
-        # # delete the user from a group
-        # query = "DELETE * FROM user_belongs_group WHERE UserID = :userid"
-
-        # # delete any activity related to the userid
-        # query = "DELETE FROM UserActivity WHERE UserID = :userid"
-
 
     
     return redirect('/login')
@@ -439,7 +405,7 @@ def uploadfile():
                 text(insert_version),
                 {
                     "version_number": file_hash,  
-                    "version_description": "Initial version",  # Replace with the appropriate value
+                    "version_description": "Initial version",  
                     "version_size": os.path.getsize(file_path),
                     "version_upload_date": datetime.now(),
                 }
@@ -458,10 +424,10 @@ def uploadfile():
                     "filename": file.filename,
                     "file_size": os.path.getsize(file_path),
                     "upload_date": datetime.now(),
-                    "latest_version_id": version_id,  # Replace with the appropriate value
-                    "user_id": session['UserID'],  # Replace with the appropriate value
+                    "latest_version_id": version_id,  
+                    "user_id": session['UserID'],  
                     "format_id": format_id
-                        # Replace with the appropriate value
+                        
                 }
             )
 
@@ -548,10 +514,8 @@ def getfiledetails():
     query = "SELECT ruleID  FROM file_has_ac_rule WHERE FileID = :file_id"
     result = db.session.execute(text(query), {'file_id': fileid})
     m_ruleids = [str(t[0]) for t in result.fetchall()]
-    # ruleids = {key: value for key, value in zip(result.keys(), m_ruleids)}
     allrules = []
-   
-    # app.logger.debug( [t[0] for t in m_ruleids])
+
     for ruleid in m_ruleids:
         query = "SELECT RuleName, RuleDescription, AccessLevel  FROM AccessControlRule WHERE RuleID = :ruleid"
         result = db.session.execute(text(query), {'ruleid': ruleid})
@@ -574,7 +538,6 @@ def getfileversionhistory():
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     # search a file by name and/or other attributes
-    # only show files based on ac rules (=shared files)
     # if the user has admin access level then no restriction
     # if the user has employee access lvel then certiain file categories are ignored.
     if request.method == 'POST':
@@ -620,17 +583,17 @@ def search():
             params['format'] = fileformat
 
         # Execute the query and fetch results
-        results =  db.session.execute(text(query), params)  # Replace with your database library
+        results =  db.session.execute(text(query), params) 
         resfiles= results.fetchall()
         allfiles=[]
         search_attributes = ["fileid", "filename", "filesize", "uploaddate", "username", "formatname"]
         #TODO: query username and format ID so that its username and extension name
 
- # Replace with your database library
+
 
         for resfile in resfiles:
             query = "SELECT Username FROM User WHERE UserID = :userid"
-            resusername =  db.session.execute(text(query), {'userid': resfile[4]}).fetchone()[0]  # Replace with your database library
+            resusername =  db.session.execute(text(query), {'userid': resfile[4]}).fetchone()[0] 
 
             query = "SELECT FormatName FROM FileFormat WHERE FormatID = :formatid"
             resformatid =  db.session.execute(text(query), {'formatid': resfile[5]}).fetchone()[0] 
@@ -645,29 +608,8 @@ def search():
                            }
             allfiles.append(m_file)
 
-
-            # # access control
-            # query = """
-            # SELECT CASE
-            #     WHEN EXISTS (
-            #         SELECT 1
-            #         FROM file_has_ac_rule AS far
-            #         INNER JOIN AccessControlRule AS acr ON far.ruleID = acr.RuleID
-            #         INNER JOIN File AS f ON far.fileID = f.FileID
-            #         WHERE acr.RuleName = :rulename
-            #         AND f.FileName = :filename 
-            #         AND acr.UserID = :userid 
-            #     )
-            #     THEN 'Access allowed'
-            #     ELSE 'Access denied'
-            #     END AS AccessStatus;
-            # """
-            # acquery = db.session.execute(text(query), {"rulename": rulename, "filename": filename, "userid": userid})
-
             app.logger.debug(m_file)
 
-        # Sort the results by upload date (assuming it's a datetime column)
-        # results.sort(key=lambda x: x.upload_date)
 
         return render_template('search.html', categories=get_categories(), fileformats=get_fileformats(), search_results=allfiles, search_attributes=search_attributes)
 
@@ -888,20 +830,6 @@ def removegroup():
 
 
 
-
-# @app.route('/addtags', methods=['GET', 'POST'])
-# def addtags():
-#     # add tags to a file
-#     pass  
-#     return render_template('tag_management.html')
-
-
-# @app.route('/removetags', methods=['GET', 'POST'])
-# def removetags():
-#     pass        
-#     return render_template('tag_management.html')
-
-
 @app.route('/addac', methods=['GET', 'POST'])
 def addac():
     acrules = get_acrules()
@@ -944,7 +872,6 @@ def removeac():
 
         query = """
             DELETE FROM file_has_ac_rule WHERE fileID = :fileid AND  ruleID = :ruleid 
-
         """
         
         db.session.execute(
