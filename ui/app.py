@@ -472,7 +472,7 @@ def uploadfile():
 
 
             # operations on selected checkboxes
-            #TODO: it does not add relationship to the file_has_tag table
+    
             selected_checkboxes = request.form.getlist('tags')
             app.logger.debug(selected_checkboxes)
             for selection in selected_checkboxes:
@@ -623,16 +623,25 @@ def search():
         results =  db.session.execute(text(query), params)  # Replace with your database library
         resfiles= results.fetchall()
         allfiles=[]
-        search_attributes = ["fileid", "filename", "filesize", "uploaddate", "userid", "formatid"]
+        search_attributes = ["fileid", "filename", "filesize", "uploaddate", "username", "formatname"]
         #TODO: query username and format ID so that its username and extension name
+
+ # Replace with your database library
+
         for resfile in resfiles:
+            query = "SELECT Username FROM User WHERE UserID = :userid"
+            resusername =  db.session.execute(text(query), {'userid': resfile[4]}).fetchone()[0]  # Replace with your database library
+
+            query = "SELECT FormatName FROM FileFormat WHERE FormatID = :formatid"
+            resformatid =  db.session.execute(text(query), {'formatid': resfile[5]}).fetchone()[0] 
+
             m_file = {
                        "fileid": resfile[0],
                        "filename": resfile[1],
                        "filesize": resfile[2],
                        "uploaddate": resfile[3],
-                       "userid": resfile[4],
-                       "formatid": resfile[5]
+                       "username": resusername,
+                       "formatname": resformatid
                            }
             allfiles.append(m_file)
 

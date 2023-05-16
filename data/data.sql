@@ -87,16 +87,16 @@ VALUES
 
 
 INSERT INTO UserActivity (FileID, ActivityType, UserID) VALUES
-(1, 'Downloaded', 1),
-(2, 'Uploaded', 2),
-(3, 'Viewed', 3),
-(4, 'Downloaded', 4),
-(5, 'Uploaded', 5),
-(6, 'Viewed', 1),
-(7, 'Downloaded', 2),
-(8, 'Uploaded', 3),
-(9, 'Viewed', 4),
-(10, 'Downloaded', 5);
+  (1, 'Downloaded', 1),
+  (2, 'Uploaded', 2),
+  (3, 'Viewed', 3),
+  (4, 'Downloaded', 4),
+  (5, 'Uploaded', 5),
+  (6, 'Viewed', 1),
+  (7, 'Downloaded', 2),
+  (8, 'Uploaded', 3),
+  (9, 'Viewed', 4),
+  (10, 'Downloaded', 5);
 
 
 
@@ -130,29 +130,29 @@ VALUES
 
 INSERT INTO Tag (TagName, TagDescription)
 VALUES 
-    ('Technology', 'Files related to technology'),
-    ('Sports', 'Files related to sports and fitness'),
-    ('Food', 'Files related to cooking and food'),
-    ('Travel', 'Files related to travel and exploration'),
-    ('Art', 'Files related to art and creativity'),
-    ('Music', 'Files related to music and entertainment'),
-    ('Fashion', 'Files related to fashion and style'),
-    ('Education', 'Files related to education and learning'),
-    ('Business', 'Files related to business and finance'),
-    ('Health', 'Files related to health and wellness');
+    ('Data Science', 'Files related to data science and analytics'),
+    ('Machine Learning', 'Files related to machine learning and artificial intelligence'),
+    ('Finance', 'Files related to financial data and analysis'),
+    ('Marketing', 'Files related to marketing strategies and campaigns'),
+    ('Research', 'Files related to research papers and studies'),
+    ('Healthcare', 'Files related to healthcare and medical data'),
+    ('E-commerce', 'Files related to online commerce and retail'),
+    ('Social Media', 'Files related to social media platforms and analytics'),
+    ('Environment', 'Files related to environmental data and sustainability'),
+    ('Government', 'Files related to government policies and regulations');
 
 
 INSERT INTO user_receives_notification (userID, notificationID) VALUES
-(1, 1),
-(1, 2),
-(2, 3),
-(2, 4),
-(3, 5),
-(3, 6),
-(4, 7),
-(4, 8),
-(5, 9),
-(5, 10);
+  (1, 1),
+  (1, 2),
+  (2, 3),
+  (2, 4),
+  (3, 5),
+  (3, 6),
+  (4, 7),
+  (4, 8),
+  (5, 9),
+  (5, 10);
 
 
 INSERT INTO user_belongs_userGroup (userID, groupID)
