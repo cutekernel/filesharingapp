@@ -897,6 +897,31 @@ def get_acrules():
 
     return acrules
 
+
+@app.route('/removeac', methods=['GET', 'POST'])
+def removeac():
+    acrules = get_acrules()
+    if request.method == 'POST' and 'acrule' in request.form:
+        acrule = request.form.get('acrule')
+        query = "SELECT RuleID from AccessControlRule WHERE RuleName = :rulename"
+        acruleid = db.session.execute(text(query), {'rulename':acrule}).fetchone()[0]
+
+        query = """
+            DELETE FROM file_has_ac_rule WHERE fileID = :fileid AND  ruleID = :ruleid 
+
+        """
+        
+        db.session.execute(
+            text(query),
+            {
+                'fileid': session['FileID'],
+                'ruleid': acruleid
+            }
+        )
+        db.session.commit()
+    return render_template('removeac.html', acrules=acrules)
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=5000)
 
